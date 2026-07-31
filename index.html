@@ -772,7 +772,7 @@ const CONFIG = {
           min:100 },
         { id:"au_novidade", label:"Algo que você nunca havia pensado te ocorreu?",
           hint:["Se não ocorreu nada novo, escreva isso.", "Se não, escreva isso."],
-          ex:"O horário que escolhemos para ir a campo já seleciona quem pode estar lá.",
+          ex:"O horário que escolhemos para a oficina já seleciona quais estudantes conseguem vir.",
           min:80, opcional:true }
       ]
     },
@@ -785,17 +785,12 @@ const CONFIG = {
       campos:[
         { id:"pl_plano", label:"O que foi planejado para esta ida a campo?",
           hint:["Atividade, quem conduz, tempo, material, local.", "Atividade, quem conduz, tempo, material, local."],
-          ex:"Construir o mapa do bairro com as moradoras. Conduz Rita, 40 min, sala da associação.",
+          ex:"Oficina de rotina de estudo com o 8º ano. Conduz Rita, 40 min, sala de vídeo.",
           min:120 },
         { id:"pl_objetivo", label:"Qual era o objetivo desta ida, em um verbo observável?",
-          hint:["Verbo verificável no fim do dia (identificar, listar, construir). Evite sensibilizar e conscientizar. O bloco 3 vai cobrar este verbo.",
+          hint:["Verbo verificável no fim do dia (identificar, listar, construir). O bloco 3 vai cobrar este verbo.",
                 "Verbo verificável. O bloco 3 vai cobrar este verbo."],
-          ex:"Que ao menos 8 moradoras listem três serviços da rede e onde ficam.",
-          min:80 },
-        { id:"pl_ancora", label:"Que leitura do território sustentava esse objetivo?",
-          hint:["Que observação, fala ou dado justificava o plano. Se não veio do território, diga isso.",
-                "Que evidência do território sustentava isso?"],
-          ex:"Nas semanas 2 e 3, quatro pessoas disseram não saber onde fica o CRAS.",
+          ex:"Que ao menos 8 estudantes listem três estratégias de estudo que já usam.",
           min:80 },
         { id:"pl_mudou", label:"O plano mudou depois de combinado?",
           hint:["Se não mudou, escreva \"sem alteração\".", "Se não, escreva \"sem alteração\"."],
@@ -812,24 +807,24 @@ const CONFIG = {
         { id:"ex_fatos", label:"O que aconteceu, na ordem em que aconteceu",
           hint:["Só o observável: horários, quantas pessoas, o que foi dito e feito. A avaliação vem depois.",
                 "Só o observável: horários, quantas pessoas, o que foi dito e feito."],
-          ex:"Chegamos 14h10. Seis mulheres e duas crianças. Dona R. disse que a agente não aparece desde março.",
+          ex:"Chegamos 14h10. Estavam 22 estudantes e a professora de português. A aula terminou 15 min antes.",
           min:200 },
         { id:"ex_funcionou", label:"O que funcionou? Como você sabe?",
           hint:["A parte específica que deu certo, e o que você observou que mostra isso.",
                 "O que funcionou, e o que mostra isso?"],
-          ex:"O mapa no chão: quem estava calada falou quando pôde apontar em vez de responder.",
+          ex:"Trabalhar em dupla: quem não falava na roda falou quando a resposta era da dupla.",
           min:120 },
         { id:"ex_naofuncionou", label:"O que não funcionou, ou não aconteceu? Por quê?",
           hint:["O que saiu errado, com uma hipótese do motivo.", "O que não funcionou, e por quê?"],
-          ex:"A dinâmica final não ocorreu: a discussão sobre falta de água tomou 20 minutos.",
+          ex:"O fechamento não ocorreu: a discussão sobre as provas tomou 20 minutos.",
           min:120 },
         { id:"ex_imprevisto", label:"O que aconteceu sem estar planejado?",
           hint:["Assunto que emergiu, pessoa que apareceu, conflito.", "O que emergiu sem estar previsto?"],
-          ex:"Duas adolescentes pediram para participar e passaram a conduzir o registro no cartaz.",
+          ex:"Duas estudantes pediram para continuar depois da aula e assumiram o cartaz.",
           min:80 },
         { id:"ex_ajuste", label:"Que ajuste vocês fizeram durante a ação?",
           hint:["A decisão, quem tomou, e o efeito.", "Que ajuste foi feito?"],
-          ex:"Cortamos a apresentação e fomos direto ao mapa. Ganhamos 10 minutos.",
+          ex:"Cortamos a apresentação e fomos direto à atividade. Ganhamos 10 minutos.",
           min:60, opcional:true }
       ]
     },
@@ -848,16 +843,16 @@ const CONFIG = {
         { id:"av_evidencia", label:"Que evidência sustenta essa resposta?",
           hint:["Contagem, produto, fala registrada, presença. Evite \"foi produtivo\".",
                 "Que evidência concreta sustenta isso?"],
-          ex:"O objetivo era listar três serviços. No cartaz apareceram cinco; 7 das 11 citaram o CRAS.",
+          ex:"O objetivo era listar três estratégias. No cartaz apareceram cinco; 7 das 11 citaram revisão.",
           min:120 },
         { id:"av_quem", label:"Quem avaliou, além de vocês?",
-          hint:["Se a comunidade não avaliou, registre a limitação.", "Se não, registre a limitação."],
-          ex:"Rodada de uma palavra. Sete falaram; as quatro que saíram antes não foram ouvidas.",
+          hint:["Se a escola não avaliou junto, registre a limitação.", "Se não, registre a limitação."],
+          ex:"Rodada de uma palavra com a turma e conversa com a professora. Quem saiu antes não foi ouvido.",
           min:80 },
-        { id:"av_devolutiva", label:"O que voltou para a comunidade esta semana?",
+        { id:"av_devolutiva", label:"O que voltou para a escola esta semana?",
           hint:["Material, informação, encaminhamento, ou o que ficou combinado de devolver.",
                 "O que voltou, ou ficou combinado de voltar?"],
-          ex:"Deixamos o cartaz na associação e passamos o telefone do CRAS para Dona R.",
+          ex:"Deixamos o cartaz na sala e combinamos uma devolutiva no conselho de classe.",
           min:80 }
       ]
     },
@@ -868,18 +863,17 @@ const CONFIG = {
       sub:"O que você escrever aqui reaparece no bloco 1 da semana que vem.",
       campos:[
         { id:"mo_aprimorar", label:"O que dá para aprimorar, especificamente?",
-          hint:["Amarre cada melhoria a algo dos blocos 2 ou 3. Sem isso vira palpite.",
-                "Amarrado a algo dos blocos 2 ou 3."],
-          ex:"Reduzir a abertura de 15 para 5 minutos: foi ela que comeu o tempo da dinâmica final.",
+          hint:["Amarre cada melhoria a algo dos blocos 2 ou 3.", "Amarrado a algo dos blocos 2 ou 3."],
+          ex:"Reduzir a abertura de 15 para 5 minutos: foi ela que comeu o tempo do fechamento.",
           min:120 },
         { id:"mo_proximo", label:"O plano da próxima ida",
           hint:["Objetivo observável, atividade, quem conduz, material, e o plano B.",
                 "Objetivo, atividade, quem conduz, material, plano B."],
-          ex:"Que 10 moradoras identifiquem os vazamentos no mapa. Conduz João, 30 min. Plano B se chover: associação.",
+          ex:"Que 10 estudantes montem o próprio plano de estudo. Conduz João, 30 min. Plano B sem sala: pátio.",
           min:120 },
-        { id:"mo_quem", label:"Quem da comunidade participou dessa decisão?",
+        { id:"mo_quem", label:"Quem da escola participou dessa decisão?",
           hint:["Se ninguém participou, escreva isso e o motivo.", "Se ninguém, por quê?"],
-          ex:"Dona R. e Sr. J. na roda de 12/08. As demais foram informadas depois.",
+          ex:"A professora de português e a coordenadora, na reunião de 12/08.",
           min:60 }
       ]
     },
@@ -896,23 +890,15 @@ const CONFIG = {
         { id:"rf_lugar", label:"De que lugar você estava olhando?",
           hint:["Classe, raça, gênero, formação, estar ali como universitário. O que isso te deixou ver, e o que te impediu de ver?",
                 "O que esse lugar te deixou ver, e o que te impediu de ver?"],
-          ex:"Cheguei achando que era falta de informação. Demorei a ver que o problema era transporte.",
-          min:120 },
-        { id:"rf_pergunta", label:"Que pergunta você leva para a supervisão?",
-          hint:["Uma pergunta real, que você não sabe responder sozinho.", "Uma pergunta para a supervisão."],
-          ex:"Até onde insistir numa atividade que a comunidade não pediu, mas que o projeto prevê?",
-          min:50, opcional:true },
-        { id:"rf_compromisso", label:"Com o que você se compromete até a próxima ida?",
-          hint:["Verificável e individual. Na semana que vem ele reaparece.", "Verificável e individual."],
-          ex:"Confirmar por telefone o horário do CRAS e levar isso escrito.",
-          min:60 }
+          ex:"Cheguei achando que era desinteresse. Demorei a ver que metade da turma trabalha à noite.",
+          min:120 }
       ]
     }
   },
 
   /* ---- o que o painel do bloco 1 mostra da semana anterior ----
      O primeiro campo da lista é o que o botão "usar este texto" copia.     */
-  planoAnteriorCampos: ["mo_proximo", "mo_aprimorar", "rf_compromisso"],
+  planoAnteriorCampos: ["mo_proximo", "mo_aprimorar"],
   planoAnteriorDestino: "pl_plano"
 };
 </script>
@@ -1123,10 +1109,8 @@ const PERFIL_CAMPOS = [
   {k:"nome",       l:"Nome",              ph:"primeiro nome",              obrigatorio:true},
   {k:"sobrenome",  l:"Sobrenome",         ph:"como consta na matrícula",   obrigatorio:true},
   {k:"matricula",  l:"Matrícula",         ph:"é ela que liga seus registros", obrigatorio:true},
-  {k:"curso",      l:"Curso",             ph:""},
   {k:"equipe",     l:"Grupo de campo",    ph:"nome ou número do grupo"},
-  {k:"colegas",    l:"Colegas do grupo",  ph:"nomes separados por vírgula"},
-  {k:"territorio", l:"Território / instituição parceira", ph:""}
+  {k:"colegas",    l:"Colegas do grupo",  ph:"nomes separados por vírgula"}
 ];
 /* A matrícula é a chave que liga os registros de todos os aparelhos. Sem
    normalizar, "2023.1234" e "20231234" viram duas pessoas na planilha.
@@ -1407,10 +1391,8 @@ async function enviar(){
     matricula:  normMatricula(DB.perfil.matricula),
     nome:       (DB.perfil.nome||"").trim(),
     sobrenome:  (DB.perfil.sobrenome||"").trim(),
-    curso:      (DB.perfil.curso||"").trim(),
     grupo:      (DB.perfil.equipe||"").trim(),
     colegas:    (DB.perfil.colegas||"").trim(),
-    territorio: (DB.perfil.territorio||"").trim(),
     semana:     semanaAtual,
     tipo:       S.tipo,
     dataDia:    S.campos.dataCampo || "",
@@ -1467,8 +1449,8 @@ function gerarPDF(){
 
   const P = DB.perfil, S = sem(semanaAtual);
   const tp = defTipo(S.tipo);
-  [["Estudante",nomeCompleto()||"—"],["Matrícula",P.matricula||"—"],["Curso",P.curso||"—"],
-   ["Grupo",(P.equipe||"—")+(P.colegas?"  ·  "+P.colegas:"")],["Território",P.territorio||"—"],
+  [["Estudante",nomeCompleto()||"—"],["Matrícula",P.matricula||"—"],
+   ["Grupo",(P.equipe||"—")+(P.colegas?"  ·  "+P.colegas:"")],
    ["Semana",semanaAtual+" de "+CONFIG.totalSemanas],
    ["Tipo do dia", tp ? tp.label : "—"],
    [S.tipo==="aula" ? "Data da aula" : "Ida a campo", S.campos.dataCampo ? S.campos.dataCampo.split("-").reverse().join("/") : "—"],
@@ -1519,7 +1501,7 @@ function abrirEmail(){
   const assunto = "["+CONFIG.disciplina+"] Diário semana "+String(semanaAtual).padStart(2,"0")+" ("+(tp?tp.label.toLowerCase():"—")+") — "+(nomeCompleto()||"(sem nome)")+" — grupo "+(P.equipe||"—");
   const corpo = "Professor(a),\n\nO envio pelo site não funcionou, então segue o diário da semana "+semanaAtual+" em anexo.\n\n"+
     "Estudante: "+nomeCompleto()+"\nMatrícula: "+(P.matricula||"")+"\nGrupo: "+(P.equipe||"")+
-    "\nTipo do dia: "+(tp?tp.label:"")+"\nTerritório: "+(P.territorio||"")+"\n\nATENÇÃO: anexe o arquivo "+nomeArquivo()+" antes de enviar.\n";
+    "\nTipo do dia: "+(tp?tp.label:"")+"\n\nATENÇÃO: anexe o arquivo "+nomeArquivo()+" antes de enviar.\n";
   location.href = "mailto:"+encodeURIComponent(CONFIG.emailProfessor)+
     "?subject="+encodeURIComponent(assunto)+"&body="+encodeURIComponent(corpo);
 }

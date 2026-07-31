@@ -28,7 +28,6 @@ var CAMPOS = [
   // trilha "dia de campo"
   { id:"pl_plano",        titulo:"1 · plano da ida" },
   { id:"pl_objetivo",     titulo:"1 · objetivo observável" },
-  { id:"pl_ancora",       titulo:"1 · leitura do território" },
   { id:"pl_mudou",        titulo:"1 · o plano mudou" },
   { id:"ex_fatos",        titulo:"2 · o que aconteceu" },
   { id:"ex_funcionou",    titulo:"2 · o que funcionou" },
@@ -43,24 +42,22 @@ var CAMPOS = [
   { id:"mo_proximo",      titulo:"4 · plano da próxima" },
   { id:"mo_quem",         titulo:"4 · quem decidiu junto" },
   { id:"rf_incomodo",     titulo:"4.1 · incômodo" },
-  { id:"rf_lugar",        titulo:"4.1 · de que lugar" },
-  { id:"rf_pergunta",     titulo:"4.1 · pergunta p/ supervisão" },
-  { id:"rf_compromisso",  titulo:"4.1 · compromisso" }
+  { id:"rf_lugar",        titulo:"4.1 · de que lugar" }
 ];
 
 /* Campos obrigatórios de cada trilha: é sobre eles que a completude é
    calculada. Os opcionais ficam de fora de propósito.                   */
 var OBRIGATORIOS = {
   aula:  ["au_resumo","au_pensar","au_conexao"],
-  campo: ["pl_plano","pl_objetivo","pl_ancora",
+  campo: ["pl_plano","pl_objetivo",
           "ex_fatos","ex_funcionou","ex_naofuncionou","ex_imprevisto",
           "av_veredito","av_evidencia","av_quem","av_devolutiva",
           "mo_aprimorar","mo_proximo","mo_quem",
-          "rf_incomodo","rf_lugar","rf_compromisso"]
+          "rf_incomodo","rf_lugar"]
 };
 
 var META = ["chave","protocolo","recebido_em","matricula","nome","sobrenome",
-            "curso","grupo","colegas","territorio","semana","tipo","data_do_dia",
+            "grupo","colegas","semana","tipo","data_do_dia",
             "status","preenchidos","de","caracteres"];
 
 /* ============================ recebimento ============================ */
@@ -107,10 +104,8 @@ function doPost(e) {
       matricula,
       String(d.nome || "").trim(),
       String(d.sobrenome || "").trim(),
-      String(d.curso || "").trim(),
       String(d.grupo || "").trim(),
       String(d.colegas || "").trim(),
-      String(d.territorio || "").trim(),
       semana,
       tipo,
       String(d.dataDia || ""),
@@ -268,14 +263,16 @@ function criaPainel(ss) {
   /* Uma escrita só: 200 chamadas de setFormula estouram o tempo limite.    */
   var linhas = 200;
   var pAtraso = 3 + TOTAL_SEMANAS;
+  var cChave = colMeta("chave"), cStatus = colMeta("status"),
+      cMat = colMeta("matricula"), cRecebido = colMeta("recebido_em");
   var bloco = [];
   for (var r = 5; r < 5 + linhas; r++) {
     var linha = [];
     for (var c = 0; c < TOTAL_SEMANAS; c++) {
       var col = 3 + c;
       linha.push(
-        '=IF($A' + r + '="","",IFERROR(IF(LOOKUP(2,1/(respostas!$A$2:$A=$A' + r + '&"|"&' +
-        colLetra(col) + '$4),respostas!$N$2:$N)="completo","✓","!"),""))'
+        '=IF($A' + r + '="","",IFERROR(IF(LOOKUP(2,1/(respostas!$' + cChave + '$2:$' + cChave + '=$A' + r + '&"|"&' +
+        colLetra(col) + '$4),respostas!$' + cStatus + '$2:$' + cStatus + ')="completo","✓","!"),""))'
       );
     }
     /* atraso = semanas já vencidas menos as que têm alguma coisa gravada */
@@ -285,7 +282,8 @@ function criaPainel(ss) {
       '-COUNTIF(OFFSET($C' + r + ',0,0,1,MIN(' + TOTAL_SEMANAS + ',MAX(1,config!$B$5))),"!"))'
     );
     linha.push(
-      '=IF($A' + r + '="","",IFERROR(TEXT(LOOKUP(2,1/(respostas!$D$2:$D=$A' + r + '),respostas!$C$2:$C),"dd/mm hh:mm"),"—"))'
+      '=IF($A' + r + '="","",IFERROR(TEXT(LOOKUP(2,1/(respostas!$' + cMat + '$2:$' + cMat + '=$A' + r +
+      '),respostas!$' + cRecebido + '$2:$' + cRecebido + '),"dd/mm hh:mm"),"—"))'
     );
     bloco.push(linha);
   }
@@ -328,12 +326,14 @@ function criaLeitura(ss) {
   );
   sh.getRange("B3:B4").setBackground("#fff2cc");
 
+  var K  = '$' + colMeta("chave") + '$2:$' + colMeta("chave");
+  var busca = 'LOOKUP(2,1/(respostas!' + K + '=$B$3&"|"&$B$4),respostas!';
   sh.getRange("A6").setFormula(
     '=IF(OR($B$3="",$B$4=""),"escolha matrícula e semana acima",' +
     'IFERROR(VLOOKUP($B$3,turma!A:C,2,FALSE)&" "&VLOOKUP($B$3,turma!A:C,3,FALSE)&' +
-    '"   ·   "&LOOKUP(2,1/(respostas!$A$2:$A=$B$3&"|"&$B$4),respostas!$L$2:$L)&' +
-    '"   ·   enviado "&TEXT(LOOKUP(2,1/(respostas!$A$2:$A=$B$3&"|"&$B$4),respostas!$C$2:$C),"dd/mm/yyyy hh:mm")&' +
-    '"   ·   protocolo "&LOOKUP(2,1/(respostas!$A$2:$A=$B$3&"|"&$B$4),respostas!$B$2:$B),' +
+    '"   ·   "&' + busca + '$' + colMeta("tipo") + '$2:$' + colMeta("tipo") + ')&' +
+    '"   ·   enviado "&TEXT(' + busca + '$' + colMeta("recebido_em") + '$2:$' + colMeta("recebido_em") + '),"dd/mm/yyyy hh:mm")&' +
+    '"   ·   protocolo "&' + busca + '$' + colMeta("protocolo") + '$2:$' + colMeta("protocolo") + '),' +
     '"sem registro enviado para essa semana"))'
   );
   sh.getRange("A6").setFontWeight("bold");
@@ -345,7 +345,7 @@ function criaLeitura(ss) {
     var colResposta = colLetra(META.length + 1 + i);
     rotulos.push([CAMPOS[i].titulo]);
     formulas.push([
-      '=IF(OR($B$3="",$B$4=""),"",IFERROR(LOOKUP(2,1/(respostas!$A$2:$A=$B$3&"|"&$B$4),respostas!$' +
+      '=IF(OR($B$3="",$B$4=""),"",IFERROR(' + busca + '$' +
       colResposta + '$2:$' + colResposta + '),""))'
     ]);
   }
@@ -356,6 +356,14 @@ function criaLeitura(ss) {
   sh.getRange("B8:B" + (7 + CAMPOS.length)).setWrap(true).setVerticalAlignment("top");
   sh.setColumnWidth(1, 210);
   sh.setColumnWidth(2, 700);
+}
+
+/* Letra da coluna de um campo de META, calculada em vez de escrita à mão.
+   Assim, tirar ou acrescentar uma coluna não desalinha as fórmulas.       */
+function colMeta(nome) {
+  var i = META.indexOf(nome);
+  if (i < 0) throw new Error("Coluna desconhecida em META: " + nome);
+  return colLetra(i + 1);
 }
 
 function colLetra(n) {

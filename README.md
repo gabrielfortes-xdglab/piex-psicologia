@@ -14,11 +14,13 @@ define o formulário.
 
 **Dia de campo**, cinco blocos:
 
-1. Planejamento — o que foi planejado, objetivo em verbo observável, leitura do território
+1. Planejamento — o que foi planejado e o objetivo em verbo observável
 2. Execução / acompanhamento — o que aconteceu, o que funcionou, o que não funcionou
 3. Avaliação — o objetivo do dia foi atingido, com evidência
 4. Modificações para a próxima semana
 4.1 Reflexividade — implicação de quem escreve
+
+O campo é **Psicologia Educacional**, e os exemplos de apoio são de escola.
 
 **Dia de aula**, quatro perguntas: resumo, o que a aula fez pensar, conexão com algo
 anterior, e se ocorreu algo inédito.
