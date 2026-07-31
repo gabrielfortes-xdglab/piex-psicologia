@@ -36,13 +36,9 @@ var CAMPOS = [
   { id:"ex_ajuste",       titulo:"2 · ajuste na hora" },
   { id:"av_veredito",     titulo:"3 · veredito" },
   { id:"av_evidencia",    titulo:"3 · evidência" },
-  { id:"av_quem",         titulo:"3 · quem avaliou" },
-  { id:"av_devolutiva",   titulo:"3 · devolutiva" },
+  { id:"av_quem",         titulo:"3 · avaliação dos participantes" },
   { id:"mo_aprimorar",    titulo:"4 · o que aprimorar" },
-  { id:"mo_proximo",      titulo:"4 · plano da próxima" },
-  { id:"mo_quem",         titulo:"4 · quem decidiu junto" },
-  { id:"rf_incomodo",     titulo:"4.1 · incômodo" },
-  { id:"rf_lugar",        titulo:"4.1 · de que lugar" }
+  { id:"rf_incomodo",     titulo:"5 · incômodo" }
 ];
 
 /* Campos obrigatórios de cada trilha: é sobre eles que a completude é
@@ -51,9 +47,8 @@ var OBRIGATORIOS = {
   aula:  ["au_resumo","au_pensar","au_conexao"],
   campo: ["pl_plano","pl_objetivo",
           "ex_fatos","ex_funcionou","ex_naofuncionou","ex_imprevisto",
-          "av_veredito","av_evidencia","av_quem","av_devolutiva",
-          "mo_aprimorar","mo_proximo","mo_quem",
-          "rf_incomodo","rf_lugar"]
+          "av_veredito","av_evidencia","av_quem",
+          "mo_aprimorar","rf_incomodo"]
 };
 
 var META = ["chave","protocolo","recebido_em","matricula","nome","sobrenome",

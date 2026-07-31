@@ -17,10 +17,15 @@ define o formulário.
 1. Planejamento — o que foi planejado e o objetivo em verbo observável
 2. Execução / acompanhamento — o que aconteceu, o que funcionou, o que não funcionou
 3. Avaliação — o objetivo do dia foi atingido, com evidência
-4. Modificações para a próxima semana
-4.1 Reflexividade — implicação de quem escreve
+4. Modificações — o que aprimorar na próxima semana
+5. Reflexividade — implicação de quem escreve
 
-O campo é **Psicologia Educacional**, e os exemplos de apoio são de escola.
+O campo é **Psicologia Educacional**, mas os grupos atuam em contextos diferentes
+(educação básica, preparação para o ENEM, ensino superior), então os exemplos de
+apoio evitam vocabulário de uma etapa só.
+
+Os campos não têm texto de instrução: só a pergunta e, nas primeiras semanas, um
+exemplo preenchido, que some a partir da semana definida em `andaime`.
 
 **Dia de aula**, quatro perguntas: resumo, o que a aula fez pensar, conexão com algo
 anterior, e se ocorreu algo inédito.

@@ -736,19 +736,16 @@ const CONFIG = {
       blocos:["aula"] }
   ],
 
-  /* ---- andaime decrescente: em que semana cada nível de ajuda termina ----
-     nivel 0 = pergunta detalhada + exemplo preenchido
-     nivel 1 = só a pergunta
-     nivel 2 = campo aberto, sem apoio
-     A ESTRUTURA não muda; só muda a quantidade de apoio.                    */
+  /* ---- andaime decrescente ----
+     Até a semana indicada em ateSemana_nivel0, cada campo mostra um exemplo
+     preenchido. Depois disso fica só a pergunta.                            */
   andaime: { ateSemana_nivel0: 4, ateSemana_nivel1: 10 },
 
   /* ---- os blocos e suas perguntas ----
      Cada campo tem:
        id             identificador único. NÃO mude depois que a turma já usou.
-       label          o título do campo
-       hint           [nivel0, nivel1] — texto de apoio. No nivel 2 não aparece.
-       ex             exemplo preenchido, aparece só no nivel 0
+       label          a pergunta
+       ex             exemplo preenchido, aparece só até a semana do nivel 0
        min            nº mínimo de caracteres sugerido (só avisa, não bloqueia)
        opcional       true = marca o campo como opcional
        exigeAnterior  true = só aparece a partir da semana 2                 */
@@ -759,20 +756,16 @@ const CONFIG = {
       tag:"Dia de aula", titulo:"O que ficou da aula",
       campos:[
         { id:"au_resumo", label:"Resumo da aula",
-          hint:["Tema e o que foi discutido, como para uma colega que faltou.", "Tema e o que foi discutido."],
           ex:"Extensão como prestação de serviço x interação dialógica, a partir de Freire.",
           min:150 },
         { id:"au_pensar", label:"O que a aula te fez pensar?",
-          hint:["O que passou pela sua cabeça, não o que a professora disse. Primeira pessoa.", "Primeira pessoa."],
           ex:"O que chamamos de escuta no grupo é a gente perguntando e anotando. Isso é coleta.",
           min:120 },
         { id:"au_conexao", label:"Conectou com algum conteúdo ou experiência anterior?",
-          hint:["Qual é a conexão, não só que ela existe.", "Qual é a conexão?"],
           ex:"Com a semana 3: li como timidez o que agora parece efeito da nossa posição ali.",
           min:100 },
         { id:"au_novidade", label:"Algo que você nunca havia pensado te ocorreu?",
-          hint:["Se não ocorreu nada novo, escreva isso.", "Se não, escreva isso."],
-          ex:"O horário que escolhemos para a oficina já seleciona quais estudantes conseguem vir.",
+          ex:"O horário que escolhemos para a oficina já seleciona quem consegue participar.",
           min:80, opcional:true }
       ]
     },
@@ -783,17 +776,13 @@ const CONFIG = {
       sub:"O plano como ele era, não como você lembra dele.",
       mostrarPlanoAnterior:true,
       campos:[
-        { id:"pl_plano", label:"O que foi planejado para esta ida a campo?",
-          hint:["Atividade, quem conduz, tempo, material, local.", "Atividade, quem conduz, tempo, material, local."],
-          ex:"Oficina de rotina de estudo com o 8º ano. Conduz Rita, 40 min, sala de vídeo.",
+        { id:"pl_plano", label:"O que foi planejado para esta ida (descreva brevemente o que foi pensado para ser realizado nessa ida a campo)",
+          ex:"Oficina de rotina de estudo com o grupo. Conduz Rita, 40 min, sala de vídeo.",
           min:120 },
         { id:"pl_objetivo", label:"Qual era o objetivo desta ida, em um verbo observável?",
-          hint:["Verbo verificável no fim do dia (identificar, listar, construir). O bloco 3 vai cobrar este verbo.",
-                "Verbo verificável. O bloco 3 vai cobrar este verbo."],
-          ex:"Que ao menos 8 estudantes listem três estratégias de estudo que já usam.",
+          ex:"Que ao menos 8 participantes listem três estratégias de estudo que já usam.",
           min:80 },
         { id:"pl_mudou", label:"O plano mudou depois de combinado?",
-          hint:["Se não mudou, escreva \"sem alteração\".", "Se não, escreva \"sem alteração\"."],
           ex:"Rita ficou doente e João conduziu. Reduzimos de 40 para 30 minutos.",
           min:40, opcional:true }
       ]
@@ -805,25 +794,18 @@ const CONFIG = {
       sub:"Primeiro o que aconteceu, depois o julgamento. Separar as duas coisas é o que permite discordar da leitura sem discordar do relato.",
       campos:[
         { id:"ex_fatos", label:"O que aconteceu, na ordem em que aconteceu",
-          hint:["Só o observável: horários, quantas pessoas, o que foi dito e feito. A avaliação vem depois.",
-                "Só o observável: horários, quantas pessoas, o que foi dito e feito."],
-          ex:"Chegamos 14h10. Estavam 22 estudantes e a professora de português. A aula terminou 15 min antes.",
+          ex:"Chegamos 14h10. Estavam 22 participantes e a responsável pelo espaço. Terminou 15 min antes.",
           min:200 },
         { id:"ex_funcionou", label:"O que funcionou? Como você sabe?",
-          hint:["A parte específica que deu certo, e o que você observou que mostra isso.",
-                "O que funcionou, e o que mostra isso?"],
           ex:"Trabalhar em dupla: quem não falava na roda falou quando a resposta era da dupla.",
           min:120 },
         { id:"ex_naofuncionou", label:"O que não funcionou, ou não aconteceu? Por quê?",
-          hint:["O que saiu errado, com uma hipótese do motivo.", "O que não funcionou, e por quê?"],
           ex:"O fechamento não ocorreu: a discussão sobre as provas tomou 20 minutos.",
           min:120 },
         { id:"ex_imprevisto", label:"O que aconteceu sem estar planejado?",
-          hint:["Assunto que emergiu, pessoa que apareceu, conflito.", "O que emergiu sem estar previsto?"],
-          ex:"Duas estudantes pediram para continuar depois da aula e assumiram o cartaz.",
+          ex:"Duas participantes pediram para continuar depois do encontro e assumiram o cartaz.",
           min:80 },
         { id:"ex_ajuste", label:"Que ajuste vocês fizeram durante a ação?",
-          hint:["A decisão, quem tomou, e o efeito.", "Que ajuste foi feito?"],
           ex:"Cortamos a apresentação e fomos direto à atividade. Ganhamos 10 minutos.",
           min:60, opcional:true }
       ]
@@ -837,22 +819,12 @@ const CONFIG = {
         { id:"av_veredito", label:"O objetivo desta ida foi atingido?",
           tipo:"escolha",
           opcoes:["Atingido","Parcialmente atingido","Não atingido","Ainda não dá para saber"],
-          hint:["Compare com o verbo do bloco 1. Se não dá para responder, o objetivo não era observável.",
-                "Compare com o verbo do bloco 1."],
           min:0 },
         { id:"av_evidencia", label:"Que evidência sustenta essa resposta?",
-          hint:["Contagem, produto, fala registrada, presença. Evite \"foi produtivo\".",
-                "Que evidência concreta sustenta isso?"],
           ex:"O objetivo era listar três estratégias. No cartaz apareceram cinco; 7 das 11 citaram revisão.",
           min:120 },
-        { id:"av_quem", label:"Quem avaliou, além de vocês?",
-          hint:["Se a escola não avaliou junto, registre a limitação.", "Se não, registre a limitação."],
-          ex:"Rodada de uma palavra com a turma e conversa com a professora. Quem saiu antes não foi ouvido.",
-          min:80 },
-        { id:"av_devolutiva", label:"O que voltou para a escola esta semana?",
-          hint:["Material, informação, encaminhamento, ou o que ficou combinado de devolver.",
-                "O que voltou, ou ficou combinado de voltar?"],
-          ex:"Deixamos o cartaz na sala e combinamos uma devolutiva no conselho de classe.",
+        { id:"av_quem", label:"Os participantes puderam avaliar o encontro? De que forma?",
+          ex:"Rodada de uma palavra no fim. Sete falaram; quem saiu antes não foi ouvido.",
           min:80 }
       ]
     },
@@ -863,42 +835,26 @@ const CONFIG = {
       sub:"O que você escrever aqui reaparece no bloco 1 da semana que vem.",
       campos:[
         { id:"mo_aprimorar", label:"O que dá para aprimorar, especificamente?",
-          hint:["Amarre cada melhoria a algo dos blocos 2 ou 3.", "Amarrado a algo dos blocos 2 ou 3."],
           ex:"Reduzir a abertura de 15 para 5 minutos: foi ela que comeu o tempo do fechamento.",
-          min:120 },
-        { id:"mo_proximo", label:"O plano da próxima ida",
-          hint:["Objetivo observável, atividade, quem conduz, material, e o plano B.",
-                "Objetivo, atividade, quem conduz, material, plano B."],
-          ex:"Que 10 estudantes montem o próprio plano de estudo. Conduz João, 30 min. Plano B sem sala: pátio.",
-          min:120 },
-        { id:"mo_quem", label:"Quem da escola participou dessa decisão?",
-          hint:["Se ninguém participou, escreva isso e o motivo.", "Se ninguém, por quê?"],
-          ex:"A professora de português e a coordenadora, na reunião de 12/08.",
-          min:60 }
+          min:120 }
       ]
     },
 
-    /* ---------- 4.1 ---------- */
+    /* ---------- 5 ---------- */
     reflexividade: {
-      tag:"4.1 · Reflexividade", titulo:"Implicação",
+      tag:"5 · Reflexividade", titulo:"Implicação",
       sub:"Primeira pessoa.",
       campos:[
         { id:"rf_incomodo", label:"O que te incomodou ou te surpreendeu esta semana?",
-          hint:["Sem precisar resolver: nomear já é o trabalho.", "O que te incomodou ou surpreendeu?"],
           ex:"Percebi que falei quase o tempo todo e chamei isso de roda de conversa.",
-          min:100 },
-        { id:"rf_lugar", label:"De que lugar você estava olhando?",
-          hint:["Classe, raça, gênero, formação, estar ali como universitário. O que isso te deixou ver, e o que te impediu de ver?",
-                "O que esse lugar te deixou ver, e o que te impediu de ver?"],
-          ex:"Cheguei achando que era desinteresse. Demorei a ver que metade da turma trabalha à noite.",
-          min:120 }
+          min:100 }
       ]
     }
   },
 
   /* ---- o que o painel do bloco 1 mostra da semana anterior ----
      O primeiro campo da lista é o que o botão "usar este texto" copia.     */
-  planoAnteriorCampos: ["mo_proximo", "mo_aprimorar"],
+  planoAnteriorCampos: ["mo_aprimorar"],
   planoAnteriorDestino: "pl_plano"
 };
 </script>
