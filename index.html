@@ -104,10 +104,12 @@ main{padding-top:26px}
   align-items:center; justify-content:center; gap:3px;
 }
 .wk b{font-size:1rem; font-weight:600; color:var(--ink)}
-.wk[data-st="feita"]{background:var(--ok-soft); border-color:var(--ok)}
+.wk[data-st="enviada"]{background:var(--ok-soft); border-color:var(--ok)}
 .wk[data-st="rascunho"]{background:var(--warn-soft); border-color:var(--warn)}
+.wk[data-st="pendente"]{background:var(--accent-soft); border-color:var(--accent)}
 .wk[aria-current="true"]{outline:2px solid var(--accent); outline-offset:1px}
 .wk .tick{font-size:.66rem; color:var(--ink-3)}
+.wk .kind{font-size:.6rem; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-3)}
 .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:.76rem; color:var(--ink-3); margin:10px 0 26px}
 .legend span{display:flex;align-items:center;gap:6px}
 .sq{width:10px;height:10px;border:1px solid var(--line-2);border-radius:2px;display:inline-block}
@@ -161,6 +163,8 @@ input:focus, textarea:focus, select:focus{border-color:var(--accent)}
 .esc-op:hover{border-color:var(--accent)}
 .esc-op input{width:18px; height:18px; accent-color:var(--accent); flex:none; margin:0}
 .esc-op:has(input:checked){border-color:var(--accent); background:var(--accent-soft); font-weight:500}
+.esc-op b{display:block; font-weight:600}
+.tipo-desc{display:block; font-size:.82rem; font-weight:400; color:var(--ink-2); margin-top:2px}
 .opc{font-weight:400; font-size:.76rem; color:var(--ink-3); text-transform:uppercase; letter-spacing:.06em; margin-left:6px}
 .rev-bloco{font-size:.95rem; margin:26px 0 2px; color:var(--accent)}
 
@@ -180,6 +184,13 @@ input:focus, textarea:focus, select:focus{border-color:var(--accent)}
   padding:12px 14px; margin:0 0 22px; font-size:.88rem; color:var(--ink);
 }
 .alerta strong{display:block; margin-bottom:4px}
+.alerta.ok{background:var(--ok-soft); border-color:var(--ok)}
+.alerta.erro{background:var(--accent-soft); border-color:var(--accent)}
+.protocolo{
+  font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-size:1.02rem;
+  letter-spacing:.06em; background:var(--paper-2); border:1px solid var(--line-2);
+  border-radius:var(--radius); padding:8px 12px; display:inline-block; margin-top:8px; user-select:all;
+}
 .entrega{border:1px solid var(--line-2); background:var(--card); border-radius:var(--radius); padding:18px; margin:24px 0}
 .entrega ol{margin:10px 0 0; padding-left:20px; font-size:.9rem; color:var(--ink-2)}
 .entrega li{margin-bottom:8px}
@@ -231,7 +242,8 @@ footer.foot{border-top:1px solid var(--line); margin-top:44px; padding:20px 0 8p
     <div class="legend">
       <span><i class="sq"></i> não iniciada</span>
       <span><i class="sq" style="background:var(--warn-soft);border-color:var(--warn)"></i> rascunho</span>
-      <span><i class="sq" style="background:var(--ok-soft);border-color:var(--ok)"></i> PDF gerado</span>
+      <span><i class="sq" style="background:var(--accent-soft);border-color:var(--accent)"></i> envio pendente</span>
+      <span><i class="sq" style="background:var(--ok-soft);border-color:var(--ok)"></i> enviada</span>
     </div>
 
     <div class="btn-row">
@@ -241,8 +253,8 @@ footer.foot{border-top:1px solid var(--line); margin-top:44px; padding:20px 0 8p
       <input type="file" id="fileImport" accept="application/json" class="sr">
     </div>
     <p style="font-size:.8rem;color:var(--ink-3);max-width:60ch;margin-top:16px">
-      Tudo o que você escreve fica salvo apenas neste navegador, neste aparelho. Nada é enviado para servidor nenhum.
-      Se você limpar os dados do navegador ou trocar de aparelho, use o backup <code>.json</code> acima.
+      O rascunho fica neste navegador até você apertar <b>Enviar registro</b>. Trocando de aparelho antes
+      disso, leve o backup <code>.json</code>.
     </p>
   </section>
 
@@ -253,22 +265,22 @@ footer.foot{border-top:1px solid var(--line); margin-top:44px; padding:20px 0 8p
   <section class="screen" id="scr-revisao" aria-labelledby="h-rev">
     <span class="eixo-tag">Fechamento</span>
     <h2 class="step-h" id="h-rev">Revisar e entregar</h2>
-    <p class="step-sub">Confira antes de gerar o PDF. Depois de gerado, o arquivo vai para a pasta de downloads do seu aparelho.</p>
+    <p class="step-sub">Dá para corrigir e reenviar depois. Vale sempre a última versão.</p>
     <div id="revAlerta"></div>
     <div id="revLista"></div>
 
     <div class="entrega">
-      <strong style="font-family:Fraunces,Georgia,serif;font-size:1.05rem">Como entregar</strong>
-      <ol>
-        <li><b>Gere o PDF</b> no botão abaixo e localize o arquivo nos seus downloads.</li>
-        <li><b>Abra o e-mail</b> no segundo botão. O destinatário e o assunto já vêm preenchidos.</li>
-        <li><b>Anexe o PDF</b> manualmente e envie. O navegador não consegue anexar o arquivo sozinho.</li>
-      </ol>
+      <strong style="font-family:Fraunces,Georgia,serif;font-size:1.05rem">Entregar</strong>
+      <p style="font-size:.9rem;color:var(--ink-2);margin:8px 0 0" id="entregaTxt">
+        O envio gera um protocolo, que é o seu comprovante.
+      </p>
+      <div id="envioStatus"></div>
       <div class="btn-row" style="margin-top:16px">
-        <button class="btn" id="btnPDF">Gerar PDF</button>
-        <button class="btn ghost" id="btnMail">Abrir e-mail de entrega</button>
+        <button class="btn" id="btnEnviar">Enviar registro</button>
+        <button class="btn ghost" id="btnPDF">Baixar PDF (sua cópia)</button>
       </div>
       <p id="pdfNome" style="font-size:.8rem;color:var(--ink-3);margin:12px 0 0"></p>
+      <button class="btn link" id="btnMail" style="margin-top:4px">problema no envio? entregar por e-mail</button>
     </div>
 
     <button class="btn link" id="btnVoltarCapa">← voltar para a lista de semanas</button>
@@ -699,13 +711,30 @@ const CONFIG = {
   /* ---- identificação da disciplina ---- */
   disciplina:      "PIEX",
   subtitulo:       "Curso de Extensão Curricularizada",
-  emailProfessor:  "gabrielfortesuah@gmail.com",   // <-- destinatário das entregas
+  emailProfessor:  "gabrielfortesuah@gmail.com",   // <-- só para o botão de e-mail avulso
   totalSemanas:    15,
 
-  /* ---- ESTRUTURA FIXA: a mesma ordem em todas as semanas ----
-     Para tirar um bloco, remova o nome da lista. Para reordenar, troque a
-     posição. Os blocos em si estão definidos logo abaixo, em "blocos".      */
-  estrutura: ["planejamento", "execucao", "avaliacao", "modificacoes", "reflexividade"],
+  /* Segunda-feira da semana 1. Serve para o app abrir na semana certa mesmo
+     em um aparelho novo, onde não existe histórico local.                   */
+  dataInicio:      "2026-08-03",
+
+  /* ---- ENVIO PARA A PLANILHA ----
+     Cole aqui a URL do aplicativo web do Apps Script (termina em /exec).
+     Enquanto estiver vazio, o app funciona só com PDF, sem envio.
+     O passo a passo está em INSTALACAO.md.                                  */
+  envio: {
+    endpoint: "",
+    ativo:    true
+  },
+
+  /* ---- TIPOS DE REGISTRO ----
+     A estudante escolhe um no começo, e isso define quais blocos aparecem.  */
+  tipos: [
+    { id:"campo", label:"Dia de campo", desc:"Cinco blocos.",
+      blocos:["planejamento","execucao","avaliacao","modificacoes","reflexividade"] },
+    { id:"aula",  label:"Dia de aula",  desc:"Registro curto, quatro perguntas.",
+      blocos:["aula"] }
+  ],
 
   /* ---- andaime decrescente: em que semana cada nível de ajuda termina ----
      nivel 0 = pergunta detalhada + exemplo preenchido
@@ -725,31 +754,52 @@ const CONFIG = {
        exigeAnterior  true = só aparece a partir da semana 2                 */
   blocos: {
 
+    /* ---------- trilha "dia de aula" ---------- */
+    aula: {
+      tag:"Dia de aula", titulo:"O que ficou da aula",
+      campos:[
+        { id:"au_resumo", label:"Resumo da aula",
+          hint:["Tema e o que foi discutido, como para uma colega que faltou.", "Tema e o que foi discutido."],
+          ex:"Extensão como prestação de serviço x interação dialógica, a partir de Freire.",
+          min:150 },
+        { id:"au_pensar", label:"O que a aula te fez pensar?",
+          hint:["O que passou pela sua cabeça, não o que a professora disse. Primeira pessoa.", "Primeira pessoa."],
+          ex:"O que chamamos de escuta no grupo é a gente perguntando e anotando. Isso é coleta.",
+          min:120 },
+        { id:"au_conexao", label:"Conectou com algum conteúdo ou experiência anterior?",
+          hint:["Qual é a conexão, não só que ela existe.", "Qual é a conexão?"],
+          ex:"Com a semana 3: li como timidez o que agora parece efeito da nossa posição ali.",
+          min:100 },
+        { id:"au_novidade", label:"Algo que você nunca havia pensado te ocorreu?",
+          hint:["Se não ocorreu nada novo, escreva isso.", "Se não, escreva isso."],
+          ex:"O horário que escolhemos para ir a campo já seleciona quem pode estar lá.",
+          min:80, opcional:true }
+      ]
+    },
+
     /* ---------- 1 ---------- */
     planejamento: {
       tag:"1 · Planejamento", titulo:"O que foi planejado para esta ida",
-      sub:"Registre o plano como ele de fato era, não como você lembra dele. O plano que você escreveu na semana anterior aparece ao lado, e você pode reaproveitá-lo.",
+      sub:"O plano como ele era, não como você lembra dele.",
       mostrarPlanoAnterior:true,
       campos:[
         { id:"pl_plano", label:"O que foi planejado para esta ida a campo?",
-          hint:["Atividade prevista, quem ia conduzir, quanto tempo, o que vocês levariam e onde seria. Use o painel acima se o plano continua o mesmo, e edite o que mudou.",
-                "Atividade, quem conduz, tempo, material, local."],
-          ex:"Construir o mapa do bairro com as moradoras e listar os serviços da rede. Conduz: Rita. 40 minutos, sala da associação. Levar cartolina A2 e canetão.",
+          hint:["Atividade, quem conduz, tempo, material, local.", "Atividade, quem conduz, tempo, material, local."],
+          ex:"Construir o mapa do bairro com as moradoras. Conduz Rita, 40 min, sala da associação.",
           min:120 },
         { id:"pl_objetivo", label:"Qual era o objetivo desta ida, em um verbo observável?",
-          hint:["Escolha um verbo que você consiga verificar no fim do dia: identificar, listar, construir, comparecer, agendar. Evite \"sensibilizar\", \"conscientizar\" e \"empoderar\", que não deixam ver se aconteceram. O bloco 3 vai cobrar exatamente este verbo.",
-                "O objetivo desta ida, com verbo verificável. O bloco 3 vai cobrar este verbo."],
-          ex:"Que ao menos 8 moradoras consigam listar três serviços da rede de proteção do bairro e onde ficam.",
+          hint:["Verbo verificável no fim do dia (identificar, listar, construir). Evite sensibilizar e conscientizar. O bloco 3 vai cobrar este verbo.",
+                "Verbo verificável. O bloco 3 vai cobrar este verbo."],
+          ex:"Que ao menos 8 moradoras listem três serviços da rede e onde ficam.",
           min:80 },
         { id:"pl_ancora", label:"Que leitura do território sustentava esse objetivo?",
-          hint:["Qual observação, fala ou dado justificava esse plano. Se o plano veio da equipe sem base no território, escreva isso: reconhecer a inferência é parte do trabalho.",
-                "Que evidência do território sustentava esse objetivo?"],
-          ex:"Nas semanas 2 e 3, quatro pessoas diferentes disseram não saber onde fica o CRAS.",
+          hint:["Que observação, fala ou dado justificava o plano. Se não veio do território, diga isso.",
+                "Que evidência do território sustentava isso?"],
+          ex:"Nas semanas 2 e 3, quatro pessoas disseram não saber onde fica o CRAS.",
           min:80 },
-        { id:"pl_mudou", label:"O plano mudou entre o que foi combinado e o que vocês levaram a campo?",
-          hint:["Mudança de data, de conduzir, de atividade, de local. Se não mudou nada, escreva \"sem alteração\".",
-                "O plano mudou depois de combinado? Se não, escreva \"sem alteração\"."],
-          ex:"Mudou: Rita ficou doente e João conduziu. Reduzimos de 40 para 30 minutos.",
+        { id:"pl_mudou", label:"O plano mudou depois de combinado?",
+          hint:["Se não mudou, escreva \"sem alteração\".", "Se não, escreva \"sem alteração\"."],
+          ex:"Rita ficou doente e João conduziu. Reduzimos de 40 para 30 minutos.",
           min:40, opcional:true }
       ]
     },
@@ -757,32 +807,29 @@ const CONFIG = {
     /* ---------- 2 ---------- */
     execucao: {
       tag:"2 · Execução e acompanhamento", titulo:"Como foi",
-      sub:"Primeiro o que aconteceu, depois o julgamento sobre o que funcionou. Separar as duas coisas é o que permite alguém discordar da sua leitura sem discordar do seu relato.",
+      sub:"Primeiro o que aconteceu, depois o julgamento. Separar as duas coisas é o que permite discordar da leitura sem discordar do relato.",
       campos:[
         { id:"ex_fatos", label:"O que aconteceu, na ordem em que aconteceu",
-          hint:["Só o observável: horário de chegada, quem estava, quantas pessoas, o que foi dito, o que foi feito, quanto durou. Deixe a avaliação para os campos seguintes.",
+          hint:["Só o observável: horários, quantas pessoas, o que foi dito e feito. A avaliação vem depois.",
                 "Só o observável: horários, quantas pessoas, o que foi dito e feito."],
-          ex:"Chegamos 14h10. Estavam 6 mulheres e 2 crianças na sala dos fundos. Dona R. disse que a agente de saúde não aparece desde março. Durou 50 minutos.",
+          ex:"Chegamos 14h10. Seis mulheres e duas crianças. Dona R. disse que a agente não aparece desde março.",
           min:200 },
         { id:"ex_funcionou", label:"O que funcionou? Como você sabe?",
-          hint:["Nomeie a parte específica que deu certo (a atividade, o material, o horário, a forma de convidar) e diga o que você observou que mostra isso.",
-                "O que funcionou, e o que você observou que mostra isso?"],
-          ex:"O mapa no chão funcionou: as pessoas se levantaram e apontaram. Quem estava calada na roda falou quando pôde apontar em vez de responder.",
+          hint:["A parte específica que deu certo, e o que você observou que mostra isso.",
+                "O que funcionou, e o que mostra isso?"],
+          ex:"O mapa no chão: quem estava calada falou quando pôde apontar em vez de responder.",
           min:120 },
         { id:"ex_naofuncionou", label:"O que não funcionou, ou não aconteceu? Por quê?",
-          hint:["Este é o campo mais informativo do bloco. Diga o que ficou de fora ou saiu errado e formule uma hipótese do motivo.",
-                "O que não funcionou ou não aconteceu, e por quê?"],
-          ex:"A dinâmica final não ocorreu: o tempo estourou porque a discussão sobre falta de água tomou 20 minutos. Tínhamos previsto tempo demais para a abertura.",
+          hint:["O que saiu errado, com uma hipótese do motivo.", "O que não funcionou, e por quê?"],
+          ex:"A dinâmica final não ocorreu: a discussão sobre falta de água tomou 20 minutos.",
           min:120 },
         { id:"ex_imprevisto", label:"O que aconteceu sem estar planejado?",
-          hint:["Assunto que emergiu, pessoa que apareceu, conflito, oferta espontânea. O imprevisto costuma ser o dado mais rico do campo.",
-                "O que emergiu sem estar previsto?"],
+          hint:["Assunto que emergiu, pessoa que apareceu, conflito.", "O que emergiu sem estar previsto?"],
           ex:"Duas adolescentes pediram para participar e passaram a conduzir o registro no cartaz.",
           min:80 },
         { id:"ex_ajuste", label:"Que ajuste vocês fizeram durante a ação?",
-          hint:["Decisão tomada no momento, quem tomou, e o efeito percebido.",
-                "Que ajuste foi feito no meio da ação?"],
-          ex:"Cortamos a apresentação inicial e fomos direto ao mapa. Ganhamos 10 minutos.",
+          hint:["A decisão, quem tomou, e o efeito.", "Que ajuste foi feito?"],
+          ex:"Cortamos a apresentação e fomos direto ao mapa. Ganhamos 10 minutos.",
           min:60, opcional:true }
       ]
     },
@@ -790,28 +837,27 @@ const CONFIG = {
     /* ---------- 3 ---------- */
     avaliacao: {
       tag:"3 · Avaliação", titulo:"O objetivo do dia foi atingido?",
-      sub:"Retome o verbo que você escreveu no bloco 1 e responda de forma direta. Avaliar exige evidência e exige mais de uma voz: impressão da equipe sozinha ainda não é avaliação.",
+      sub:"Impressão da equipe sozinha ainda não é avaliação.",
       campos:[
         { id:"av_veredito", label:"O objetivo desta ida foi atingido?",
           tipo:"escolha",
           opcoes:["Atingido","Parcialmente atingido","Não atingido","Ainda não dá para saber"],
-          hint:["Compare com o verbo observável do bloco 1. Se você não consegue responder, o objetivo provavelmente não era observável, e isso já é um achado.",
-                "Compare com o verbo observável do bloco 1."],
+          hint:["Compare com o verbo do bloco 1. Se não dá para responder, o objetivo não era observável.",
+                "Compare com o verbo do bloco 1."],
           min:0 },
         { id:"av_evidencia", label:"Que evidência sustenta essa resposta?",
-          hint:["Contagem, produto feito, fala registrada, lista de presença, foto do cartaz. Evite \"foi produtivo\" e \"houve boa participação\", que não deixam verificar.",
-                "Que evidência concreta sustenta essa resposta?"],
-          ex:"O objetivo era listar três serviços. No cartaz final apareceram cinco, e 7 das 11 participantes citaram o CRAS espontaneamente.",
+          hint:["Contagem, produto, fala registrada, presença. Evite \"foi produtivo\".",
+                "Que evidência concreta sustenta isso?"],
+          ex:"O objetivo era listar três serviços. No cartaz apareceram cinco; 7 das 11 citaram o CRAS.",
           min:120 },
         { id:"av_quem", label:"Quem avaliou, além de vocês?",
-          hint:["A comunidade foi consultada sobre o resultado? Como? Se não foi, registre isso como limitação.",
-                "A comunidade avaliou junto? Como? Se não, registre a limitação."],
-          ex:"Rodada final de uma palavra. Sete falaram; as quatro que saíram antes não foram ouvidas.",
+          hint:["Se a comunidade não avaliou, registre a limitação.", "Se não, registre a limitação."],
+          ex:"Rodada de uma palavra. Sete falaram; as quatro que saíram antes não foram ouvidas.",
           min:80 },
         { id:"av_devolutiva", label:"O que voltou para a comunidade esta semana?",
-          hint:["Material entregue, informação repassada, encaminhamento feito, ou o que ficou combinado de devolver. Extensão que só leva dado para dentro da universidade não cumpriu a interação dialógica.",
-                "O que voltou para a comunidade, ou ficou combinado de voltar?"],
-          ex:"Deixamos o cartaz do mapa fixado na associação e passamos o telefone do CRAS para Dona R.",
+          hint:["Material, informação, encaminhamento, ou o que ficou combinado de devolver.",
+                "O que voltou, ou ficou combinado de voltar?"],
+          ex:"Deixamos o cartaz na associação e passamos o telefone do CRAS para Dona R.",
           min:80 }
       ]
     },
@@ -819,22 +865,21 @@ const CONFIG = {
     /* ---------- 4 ---------- */
     modificacoes: {
       tag:"4 · Modificações", titulo:"O que dá para aprimorar na próxima semana",
-      sub:"Este bloco fecha o ciclo. A avaliação que não altera o próximo plano não cumpriu função. O que você escrever aqui aparece no bloco 1 da semana que vem.",
+      sub:"O que você escrever aqui reaparece no bloco 1 da semana que vem.",
       campos:[
         { id:"mo_aprimorar", label:"O que dá para aprimorar, especificamente?",
-          hint:["Amarre cada melhoria a algo que você escreveu no bloco 2 ou 3. Uma melhoria sem evidência atrás vira palpite. Se nada muda, diga o que na avaliação confirmou o plano.",
-                "O que aprimorar, amarrado a algo dos blocos 2 ou 3?"],
-          ex:"Reduzir a abertura de 15 para 5 minutos, porque foi ela que comeu o tempo da dinâmica final. E começar pelo tema da água, que foi o que mobilizou.",
+          hint:["Amarre cada melhoria a algo dos blocos 2 ou 3. Sem isso vira palpite.",
+                "Amarrado a algo dos blocos 2 ou 3."],
+          ex:"Reduzir a abertura de 15 para 5 minutos: foi ela que comeu o tempo da dinâmica final.",
           min:120 },
         { id:"mo_proximo", label:"O plano da próxima ida",
-          hint:["Objetivo em verbo observável, atividade, quem conduz, tempo, material, e o plano B se der errado (chuva, ausência, espaço fechado).",
-                "Objetivo, atividade, quem conduz, material, e o plano B."],
-          ex:"Que 10 moradoras identifiquem os pontos de vazamento no mapa. Conduz João, 30 minutos. Levar mapa A2 impresso. Plano B: se chover, sala da associação (combinado com Sr. J.).",
+          hint:["Objetivo observável, atividade, quem conduz, material, e o plano B.",
+                "Objetivo, atividade, quem conduz, material, plano B."],
+          ex:"Que 10 moradoras identifiquem os vazamentos no mapa. Conduz João, 30 min. Plano B se chover: associação.",
           min:120 },
         { id:"mo_quem", label:"Quem da comunidade participou dessa decisão?",
-          hint:["Nome ou inicial, papel, e em que momento a pessoa opinou. Se ninguém participou, escreva isso e explique o motivo.",
-                "Quem da comunidade decidiu junto? Se ninguém, por quê?"],
-          ex:"Dona R. e Sr. J. na roda de 12/08. As demais foram informadas depois, o que é uma limitação.",
+          hint:["Se ninguém participou, escreva isso e o motivo.", "Se ninguém, por quê?"],
+          ex:"Dona R. e Sr. J. na roda de 12/08. As demais foram informadas depois.",
           min:60 }
       ]
     },
@@ -842,27 +887,24 @@ const CONFIG = {
     /* ---------- 4.1 ---------- */
     reflexividade: {
       tag:"4.1 · Reflexividade", titulo:"Implicação",
-      sub:"Este bloco é o que separa um diário de um relatório. Escreva na primeira pessoa.",
+      sub:"Primeira pessoa.",
       campos:[
         { id:"rf_incomodo", label:"O que te incomodou ou te surpreendeu esta semana?",
-          hint:["Sem precisar resolver o incômodo. Nomeá-lo já é o trabalho.",
-                "O que te incomodou ou surpreendeu?"],
-          ex:"Me incomodou perceber que eu falei quase o tempo todo e chamei isso de \"roda de conversa\".",
+          hint:["Sem precisar resolver: nomear já é o trabalho.", "O que te incomodou ou surpreendeu?"],
+          ex:"Percebi que falei quase o tempo todo e chamei isso de roda de conversa.",
           min:100 },
         { id:"rf_lugar", label:"De que lugar você estava olhando?",
-          hint:["Sua classe, raça, gênero, religião, formação, o fato de estar ali como estudante universitário. O que esse lugar te deixou ver, e o que te impediu de ver?",
-                "De que lugar você olhou? O que isso te deixou ver, e o que te impediu de ver?"],
-          ex:"Cheguei achando que a questão era falta de informação. Vindo de escola particular e de fora do bairro, demorei a ver que o problema era transporte.",
+          hint:["Classe, raça, gênero, formação, estar ali como universitário. O que isso te deixou ver, e o que te impediu de ver?",
+                "O que esse lugar te deixou ver, e o que te impediu de ver?"],
+          ex:"Cheguei achando que era falta de informação. Demorei a ver que o problema era transporte.",
           min:120 },
         { id:"rf_pergunta", label:"Que pergunta você leva para a supervisão?",
-          hint:["Uma pergunta real, que você não sabe responder sozinho.",
-                "Uma pergunta para a supervisão."],
-          ex:"Até que ponto insistir numa atividade que a comunidade não pediu, mas que o projeto prevê?",
+          hint:["Uma pergunta real, que você não sabe responder sozinho.", "Uma pergunta para a supervisão."],
+          ex:"Até onde insistir numa atividade que a comunidade não pediu, mas que o projeto prevê?",
           min:50, opcional:true },
-        { id:"rf_compromisso", label:"Com o que você se compromete até a próxima ida a campo?",
-          hint:["Algo verificável, seu, individual. Na semana que vem este texto reaparece e você vai dizer se aconteceu.",
-                "Um compromisso individual verificável até a próxima ida."],
-          ex:"Confirmar por telefone o horário de atendimento do CRAS e levar isso escrito.",
+        { id:"rf_compromisso", label:"Com o que você se compromete até a próxima ida?",
+          hint:["Verificável e individual. Na semana que vem ele reaparece.", "Verificável e individual."],
+          ex:"Confirmar por telefone o horário do CRAS e levar isso escrito.",
           min:60 }
       ]
     }
@@ -882,7 +924,7 @@ const CONFIG = {
 (function(){
 "use strict";
 
-const KEY = "piex.diario.v1";
+const KEY = "piex.diario.v2";
 const $  = s => document.querySelector(s);
 const el = (t,a,txt)=>{const n=document.createElement(t); if(a)for(const k in a)n.setAttribute(k,a[k]); if(txt!=null)n.textContent=txt; return n;};
 
@@ -912,8 +954,37 @@ function marcarSalvo(ok, msg){
     t.textContent="salvo às "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
   }else{ box.dataset.state="dirty"; t.textContent = msg || "salvando…"; }
 }
-function sem(n){ DB.semanas[n] = DB.semanas[n] || { campos:{}, pdfEm:null }; return DB.semanas[n]; }
-function anterior(){ return DB.semanas[semanaAtual-1] || null; }
+function sem(n){
+  const s = DB.semanas[n] = DB.semanas[n] || { campos:{}, tipo:null, pdfEm:null, enviadoEm:null, protocolo:null };
+  if(!("tipo" in s))      s.tipo = null;
+  if(!("enviadoEm" in s)) s.enviadoEm = null;
+  if(!("protocolo" in s)) s.protocolo = null;
+  return s;
+}
+/* O bloco 1 puxa o plano da última ida A CAMPO, não da semana n-1: entre duas
+   idas pode haver semanas de aula, que não têm plano nenhum para retomar.   */
+function anterior(){
+  for(let n = semanaAtual-1; n >= 1; n--){
+    const s = DB.semanas[n];
+    if(s && s.tipo === "campo") return s;
+  }
+  return null;
+}
+function semanaDoAnterior(){
+  for(let n = semanaAtual-1; n >= 1; n--){
+    const s = DB.semanas[n];
+    if(s && s.tipo === "campo") return n;
+  }
+  return null;
+}
+
+/* ---------------- tipo de registro (aula / campo) ---------------- */
+function defTipo(id){ return CONFIG.tipos.find(t => t.id === id) || null; }
+function tipoDaSemana(n){ const s = DB.semanas[n]; return (s && s.tipo) || null; }
+function blocosDaSemana(n){
+  const t = defTipo(tipoDaSemana(n));
+  return t ? t.blocos.slice() : [];
+}
 
 /* ---------------- andaime ---------------- */
 function nivelAndaime(n){
@@ -924,9 +995,12 @@ function nivelAndaime(n){
 function statusSemana(n){
   const s = DB.semanas[n];
   if(!s) return "vazia";
-  if(s.pdfEm) return "feita";
-  return Object.values(s.campos||{}).some(v => (v||"").trim().length>0) ? "rascunho" : "vazia";
+  if(s.enviadoEm) return "enviada";
+  const escreveu = Object.values(s.campos||{}).some(v => (v||"").trim().length>0);
+  if(s.envioFalhou && escreveu) return "pendente";
+  return escreveu ? "rascunho" : "vazia";
 }
+const ROTULO_ST = { vazia:"não iniciada", rascunho:"rascunho", pendente:"envio pendente", enviada:"enviada" };
 function camposVisiveis(chave){
   const temAnt = !!anterior();
   return CONFIG.blocos[chave].campos.filter(c => !(c.exigeAnterior && !temAnt));
@@ -936,17 +1010,20 @@ function camposVisiveis(chave){
 function pintarCapa(){
   $("#hdSub").textContent = CONFIG.disciplina;
   $("#capaLead").textContent =
-    "Registro semanal da disciplina "+CONFIG.disciplina+" ("+CONFIG.subtitulo+"). "+
-    "Mesma estrutura toda semana: planejamento, execução, avaliação, modificações e reflexividade.";
-  $("#footTxt").textContent = CONFIG.disciplina+" · "+CONFIG.subtitulo+" · dados armazenados apenas neste navegador";
+    "Registro semanal da disciplina "+CONFIG.disciplina+". Cada semana é um dia de campo ou um dia de aula.";
+  $("#footTxt").textContent = CONFIG.disciplina+" · "+CONFIG.subtitulo+" · rascunho neste navegador, entrega por envio";
 
   const g = $("#gridWeeks"); g.innerHTML="";
+  const hoje = semanaPorData();
   for(let n=1;n<=CONFIG.totalSemanas;n++){
     const st = statusSemana(n);
+    const tp = defTipo(tipoDaSemana(n));
     const b = el("button",{class:"wk","data-st":st,role:"listitem",
-      "aria-label":"Semana "+n+", "+({vazia:"não iniciada",rascunho:"rascunho",feita:"PDF gerado"})[st]});
+      "aria-label":"Semana "+n+", "+ROTULO_ST[st] + (tp ? ", "+tp.label.toLowerCase() : "") + (n===hoje ? ", semana atual" : "")});
+    if(n===hoje) b.setAttribute("aria-current","true");
     b.appendChild(el("b",null,String(n)));
-    b.appendChild(el("span",{class:"tick"}, st==="feita"?"✓":(st==="rascunho"?"…":"")));
+    b.appendChild(el("span",{class:"tick"}, st==="enviada"?"✓":(st==="pendente"?"!":(st==="rascunho"?"…":""))));
+    if(tp) b.appendChild(el("span",{class:"kind"}, tp.id==="aula" ? "aula" : "campo"));
     b.addEventListener("click",()=>abrirSemana(n));
     g.appendChild(b);
   }
@@ -954,15 +1031,32 @@ function pintarCapa(){
   $("#btnContinuar").textContent = "Continuar na semana "+prox;
   $("#btnContinuar").onclick = ()=>abrirSemana(prox);
 }
+/* Semana do calendário, contada a partir de CONFIG.dataInicio. */
+function semanaPorData(){
+  if(!CONFIG.dataInicio) return null;
+  const ini = new Date(CONFIG.dataInicio+"T00:00:00");
+  if(isNaN(ini)) return null;
+  const dias = Math.floor((Date.now() - ini.getTime()) / 86400000);
+  return Math.min(CONFIG.totalSemanas, Math.max(1, Math.floor(dias/7) + 1));
+}
+function temHistorico(){
+  return Object.keys(DB.semanas||{}).some(n => statusSemana(n) !== "vazia");
+}
 function proximaSemana(){
-  for(let n=1;n<=CONFIG.totalSemanas;n++){ if(statusSemana(n)!=="feita") return n; }
+  /* Aparelho novo (celular depois do computador): sem histórico local, o
+     palpite certo é a semana do calendário, não a semana 1.                 */
+  if(!temHistorico()) return semanaPorData() || 1;
+  for(let n=1;n<=CONFIG.totalSemanas;n++){ if(statusSemana(n)!=="enviada") return n; }
   return CONFIG.totalSemanas;
 }
 
 /* ---------------- montagem das telas ---------------- */
+function recalcularPassos(){
+  passos = ["ident"].concat(blocosDaSemana(semanaAtual)).concat(["revisao"]);
+}
 function abrirSemana(n){
   semanaAtual = n;
-  passos = ["ident"].concat(CONFIG.estrutura).concat(["revisao"]);
+  recalcularPassos();
   passoIdx = 0;
   construirTelas();
   irPara(0);
@@ -1024,41 +1118,90 @@ function campoHTML(c, nivel){
   return wrap;
 }
 
-/* --- tela 0: identificação + data da ida --- */
+/* --- tela 0: tipo do dia + data + identificação --- */
+const PERFIL_CAMPOS = [
+  {k:"nome",       l:"Nome",              ph:"primeiro nome",              obrigatorio:true},
+  {k:"sobrenome",  l:"Sobrenome",         ph:"como consta na matrícula",   obrigatorio:true},
+  {k:"matricula",  l:"Matrícula",         ph:"é ela que liga seus registros", obrigatorio:true},
+  {k:"curso",      l:"Curso",             ph:""},
+  {k:"equipe",     l:"Grupo de campo",    ph:"nome ou número do grupo"},
+  {k:"colegas",    l:"Colegas do grupo",  ph:"nomes separados por vírgula"},
+  {k:"territorio", l:"Território / instituição parceira", ph:""}
+];
+/* A matrícula é a chave que liga os registros de todos os aparelhos. Sem
+   normalizar, "2023.1234" e "20231234" viram duas pessoas na planilha.
+   O Apps Script aplica exatamente a mesma regra do outro lado.             */
+function normMatricula(v){
+  return (v||"").normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^0-9A-Za-z]/g,"").toUpperCase();
+}
+function perfilCompleto(){
+  return PERFIL_CAMPOS.filter(p=>p.obrigatorio).every(p => (DB.perfil[p.k]||"").trim().length>0);
+}
+function nomeCompleto(){
+  return ((DB.perfil.nome||"")+" "+(DB.perfil.sobrenome||"")).trim();
+}
+
 function telaIdent(){
   const s = el("section",{class:"screen","data-passo":"ident","aria-labelledby":"h-ident"});
   s.appendChild(el("span",{class:"eixo-tag"}, "Semana "+semanaAtual+" de "+CONFIG.totalSemanas));
   s.appendChild(el("h2",{class:"step-h",id:"h-ident"}, "Abertura"));
-  s.appendChild(el("p",{class:"step-sub"}, "Confirme a data da ida a campo. Seus dados ficam guardados e só precisam ser preenchidos uma vez."));
+  s.appendChild(el("p",{class:"step-sub"}, "A escolha abaixo define as perguntas seguintes."));
 
   const S = sem(semanaAtual);
+
+  /* --- escolha do tipo --- */
+  const ft = el("div",{class:"field"});
+  const labT = el("label",{id:"lb_tipo"}, "Este registro é de que dia?");
+  ft.appendChild(labT);
+  const fs = el("div",{class:"escolha",role:"radiogroup","aria-labelledby":"lb_tipo"});
+  CONFIG.tipos.forEach((t,k)=>{
+    const id2 = "tp_"+t.id;
+    const r = el("input",{type:"radio",name:"tipoDia",id:id2,value:t.id});
+    if(S.tipo===t.id) r.checked = true;
+    const l2 = el("label",{for:id2,class:"esc-op"});
+    l2.appendChild(r);
+    const txt = el("span");
+    txt.appendChild(el("b",null,t.label));
+    txt.appendChild(el("span",{class:"tipo-desc"}, t.desc));
+    l2.appendChild(txt);
+    r.addEventListener("change", ()=>{
+      sem(semanaAtual).tipo = t.id;
+      salvar();
+      recalcularPassos();
+      construirTelas();
+      irPara(0);
+    });
+    fs.appendChild(l2);
+  });
+  ft.appendChild(fs);
+  s.appendChild(ft);
+
+  if(!S.tipo) return s;
+
+  /* --- data --- */
   const fd = el("div",{class:"field"});
-  fd.appendChild(el("label",{for:"f_dataCampo"}, "Data da ida a campo"));
+  fd.appendChild(el("label",{for:"f_dataCampo"}, S.tipo==="aula" ? "Data da aula" : "Data da ida a campo"));
   const di = el("input",{type:"date",id:"f_dataCampo"});
   di.value = S.campos.dataCampo || "";
   di.addEventListener("input", ()=>{ sem(semanaAtual).campos.dataCampo = di.value; agendarSalvar(); });
   fd.appendChild(di);
   s.appendChild(fd);
 
-  const perfilCampos = [
-    {k:"nome",       l:"Nome completo",   ph:"como consta na matrícula"},
-    {k:"matricula",  l:"Matrícula",       ph:""},
-    {k:"curso",      l:"Curso",           ph:""},
-    {k:"equipe",     l:"Equipe de campo", ph:"nome ou número do grupo"},
-    {k:"colegas",    l:"Colegas da equipe", ph:"nomes separados por vírgula"},
-    {k:"territorio", l:"Território / instituição parceira", ph:""}
-  ];
-  const jaTem = (DB.perfil.nome||"").trim() && (DB.perfil.equipe||"").trim();
+  /* --- perfil, dobrado depois da primeira vez --- */
   let host = s;
-  if(jaTem){
+  if(perfilCompleto()){
     const d = el("details",{class:"dobra"});
-    d.appendChild(el("summary",null,"Seus dados — "+DB.perfil.nome+", "+DB.perfil.equipe+" (conferir ou editar)"));
+    d.appendChild(el("summary",null,"Seus dados — "+nomeCompleto()+", matrícula "+DB.perfil.matricula+" (conferir ou editar)"));
     s.appendChild(d); host = d;
   }
-  perfilCampos.forEach(p=>{
+  PERFIL_CAMPOS.forEach(p=>{
     const f = el("div",{class:"field"});
-    f.appendChild(el("label",{for:"p_"+p.k}, p.l));
+    const lab = el("label",{for:"p_"+p.k}, p.l);
+    if(!p.obrigatorio) lab.appendChild(el("span",{class:"opc"}," opcional"));
+    f.appendChild(lab);
     const i = el("input",{type:"text",id:"p_"+p.k,placeholder:p.ph});
+    if(p.k==="matricula") i.setAttribute("inputmode","numeric");
     i.value = DB.perfil[p.k] || "";
     i.addEventListener("input", ()=>{ DB.perfil[p.k]=i.value; agendarSalvar(); });
     f.appendChild(i); host.appendChild(f);
@@ -1083,7 +1226,7 @@ function painelPlanoAnterior(){
   if(!itens.length) return null;
 
   const box = el("div",{class:"anterior"});
-  box.appendChild(el("h3",null,"O que você registrou na semana "+(semanaAtual-1)));
+  box.appendChild(el("h3",null,"O que você registrou na última ida a campo (semana "+semanaDoAnterior()+")"));
   itens.forEach(i=>{
     box.appendChild(el("p",{class:"quem"}, i.label));
     box.appendChild(el("blockquote",null, i.val));
@@ -1126,7 +1269,7 @@ function telaBloco(chave){
 function construirTelas(){
   const host = $("#formHost"); host.innerHTML="";
   host.appendChild(telaIdent());
-  CONFIG.estrutura.forEach(k => host.appendChild(telaBloco(k)));
+  blocosDaSemana(semanaAtual).forEach(k => host.appendChild(telaBloco(k)));
 }
 
 /* ---------------- navegação ---------------- */
@@ -1141,7 +1284,8 @@ function irPara(i){
   $("#dock").hidden = false;
   $("#stepOf").textContent = "Semana "+semanaAtual+" · etapa "+(passoIdx+1)+" de "+passos.length;
   $("#btnPrev").textContent = passoIdx===0 ? "Semanas" : "Voltar";
-  $("#btnNext").hidden = (passoIdx===passos.length-1);
+  /* sem tipo escolhido não há para onde avançar: os blocos ainda não existem */
+  $("#btnNext").hidden = (passoIdx===passos.length-1) || (nome==="ident" && !sem(semanaAtual).tipo);
   $("#progBar").style.width = ((passoIdx)/(passos.length-1)*100)+"%";
   window.scrollTo({top:0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto":"smooth"});
 }
@@ -1161,10 +1305,10 @@ $("#btnVoltarCapa").addEventListener("click", irCapa);
 function itensDaSemana(){
   const out = [];
   const S = sem(semanaAtual);
-  CONFIG.estrutura.forEach(k=>{
+  blocosDaSemana(semanaAtual).forEach(k=>{
     const b = CONFIG.blocos[k];
     camposVisiveis(k).forEach(c=>{
-      out.push({bloco:b.tag, label:c.label, val:S.campos[c.id]||"", min:c.min||0, opcional:!!c.opcional});
+      out.push({id:c.id, bloco:b.tag, label:c.label, val:S.campos[c.id]||"", min:c.min||0, opcional:!!c.opcional});
     });
   });
   return out;
@@ -1176,15 +1320,15 @@ function pintarRevisao(){
   const curtos = itens.filter(i => (i.val||"").trim() && i.min && i.val.trim().length < i.min);
 
   const alerta = $("#revAlerta"); alerta.innerHTML="";
-  if(!(DB.perfil.nome||"").trim()){
+  if(!perfilCompleto()){
     const a = el("div",{class:"alerta"});
-    a.appendChild(el("strong",null,"Falta seu nome"));
-    a.appendChild(document.createTextNode("O PDF precisa do seu nome completo. Volte à etapa de abertura."));
+    a.appendChild(el("strong",null,"Falta identificação"));
+    a.appendChild(document.createTextNode("Nome, sobrenome e matrícula são obrigatórios para enviar. Volte à etapa de abertura."));
     alerta.appendChild(a);
   }
   if(vazios.length || curtos.length){
     const a = el("div",{class:"alerta"});
-    a.appendChild(el("strong",null,"Você ainda pode gerar o PDF, mas confira"));
+    a.appendChild(el("strong",null,"Dá para enviar assim, mas confira"));
     const partes=[];
     if(vazios.length) partes.push(vazios.length+" campo(s) obrigatório(s) em branco");
     if(curtos.length) partes.push(curtos.length+" campo(s) mais curto(s) que o sugerido");
@@ -1205,6 +1349,99 @@ function pintarRevisao(){
     lista.appendChild(d);
   });
   $("#pdfNome").textContent = "Arquivo: " + nomeArquivo();
+  pintarEnvio();
+}
+
+/* ---------------- envio para a planilha ---------------- */
+function envioLigado(){
+  return !!(CONFIG.envio && CONFIG.envio.ativo && (CONFIG.envio.endpoint||"").trim());
+}
+function pintarEnvio(){
+  const box = $("#envioStatus"); box.innerHTML="";
+  const S = sem(semanaAtual);
+  const btn = $("#btnEnviar");
+
+  if(!envioLigado()){
+    btn.hidden = true;
+    $("#entregaTxt").textContent =
+      "O envio automático ainda não foi configurado pela professora. Por enquanto, baixe o PDF e entregue pelo canal combinado.";
+    return;
+  }
+  btn.hidden = false;
+
+  if(S.enviadoEm){
+    const a = el("div",{class:"alerta ok"});
+    a.appendChild(el("strong",null,"Registro enviado"));
+    const d = new Date(S.enviadoEm);
+    a.appendChild(document.createTextNode(
+      "Recebido em "+d.toLocaleDateString("pt-BR")+" às "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+". Protocolo:"));
+    a.appendChild(el("div",{class:"protocolo"}, S.protocolo||"—"));
+    box.appendChild(a);
+    btn.textContent = "Reenviar (corrigir esta semana)";
+    return;
+  }
+  if(S.envioFalhou){
+    const a = el("div",{class:"alerta erro"});
+    a.appendChild(el("strong",null,"O envio não completou"));
+    a.appendChild(document.createTextNode(S.envioFalhou+" Seu texto continua salvo aqui. Tente de novo, e se insistir use o e-mail."));
+    box.appendChild(a);
+  }
+  btn.textContent = "Enviar registro";
+}
+
+async function enviar(){
+  const S = sem(semanaAtual);
+  const btn = $("#btnEnviar");
+
+  if(!perfilCompleto()){
+    alert("Preencha nome, sobrenome e matrícula na etapa de abertura antes de enviar.");
+    return;
+  }
+  if(S.enviadoEm && !confirm("Esta semana já foi enviada. Reenviar substitui a versão que a professora vê. Continuar?")) return;
+
+  const respostas = {};
+  itensDaSemana().forEach(i => { respostas[i.id] = (i.val||"").trim(); });
+
+  const payload = {
+    versao:     2,
+    matricula:  normMatricula(DB.perfil.matricula),
+    nome:       (DB.perfil.nome||"").trim(),
+    sobrenome:  (DB.perfil.sobrenome||"").trim(),
+    curso:      (DB.perfil.curso||"").trim(),
+    grupo:      (DB.perfil.equipe||"").trim(),
+    colegas:    (DB.perfil.colegas||"").trim(),
+    territorio: (DB.perfil.territorio||"").trim(),
+    semana:     semanaAtual,
+    tipo:       S.tipo,
+    dataDia:    S.campos.dataCampo || "",
+    respostas:  respostas
+  };
+
+  btn.disabled = true; btn.textContent = "Enviando…";
+  try{
+    /* Sem cabeçalho Content-Type de propósito: assim a requisição continua
+       "simples" e o navegador não dispara preflight, que o Apps Script não
+       responde. O corpo segue como texto e o script faz o JSON.parse.       */
+    const r = await fetch(CONFIG.envio.endpoint, {
+      method:"POST", redirect:"follow", body: JSON.stringify(payload)
+    });
+    if(!r.ok) throw new Error("O servidor respondeu "+r.status+".");
+    const out = await r.json();
+    if(!out || out.ok !== true) throw new Error((out && out.erro) || "Resposta inesperada do servidor.");
+
+    S.enviadoEm  = new Date().toISOString();
+    S.protocolo  = out.protocolo || "—";
+    S.envioFalhou = null;
+    salvar();
+    pintarEnvio();
+  }catch(e){
+    S.envioFalhou = (e && e.message) ? e.message : "Falha de conexão.";
+    salvar();
+    pintarEnvio();
+  }finally{
+    btn.disabled = false;
+    if(!S.enviadoEm) btn.textContent = "Tentar enviar de novo";
+  }
 }
 
 /* ---------------- PDF ---------------- */
@@ -1213,7 +1450,7 @@ function slug(s){
     .replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40) || "sem-nome";
 }
 function nomeArquivo(){
-  return CONFIG.disciplina+"_S"+String(semanaAtual).padStart(2,"0")+"_"+slug(DB.perfil.nome)+".pdf";
+  return CONFIG.disciplina+"_S"+String(semanaAtual).padStart(2,"0")+"_"+slug(nomeCompleto())+".pdf";
 }
 function gerarPDF(){
   if(!window.jspdf){ alert("A biblioteca de PDF não carregou. Recarregue a página."); return; }
@@ -1229,10 +1466,13 @@ function gerarPDF(){
   doc.text(CONFIG.subtitulo, M, y); y+=7; doc.setTextColor(0);
 
   const P = DB.perfil, S = sem(semanaAtual);
-  [["Estudante",P.nome||"—"],["Matrícula",P.matricula||"—"],["Curso",P.curso||"—"],
-   ["Equipe",(P.equipe||"—")+(P.colegas?"  ·  "+P.colegas:"")],["Território",P.territorio||"—"],
+  const tp = defTipo(S.tipo);
+  [["Estudante",nomeCompleto()||"—"],["Matrícula",P.matricula||"—"],["Curso",P.curso||"—"],
+   ["Grupo",(P.equipe||"—")+(P.colegas?"  ·  "+P.colegas:"")],["Território",P.territorio||"—"],
    ["Semana",semanaAtual+" de "+CONFIG.totalSemanas],
-   ["Ida a campo", S.campos.dataCampo ? S.campos.dataCampo.split("-").reverse().join("/") : "—"]
+   ["Tipo do dia", tp ? tp.label : "—"],
+   [S.tipo==="aula" ? "Data da aula" : "Ida a campo", S.campos.dataCampo ? S.campos.dataCampo.split("-").reverse().join("/") : "—"],
+   ["Protocolo", S.protocolo || "não enviado"]
   ].forEach(([k,v])=>{
     quebra(6);
     doc.setFontSize(9.5); doc.setFont("helvetica","bold"); doc.text(k+":", M, y);
@@ -1265,21 +1505,21 @@ function gerarPDF(){
   const carimbo = "Gerado em "+a.toLocaleDateString("pt-BR")+" às "+a.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   for(let p=1;p<=total;p++){
     doc.setPage(p); doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(130);
-    doc.text(carimbo+"  ·  "+(P.nome||""), M, 288);
+    doc.text(carimbo+"  ·  "+nomeCompleto(), M, 288);
     doc.text(p+"/"+total, W-M, 288, {align:"right"});
   }
   doc.save(nomeArquivo());
   sem(semanaAtual).pdfEm = new Date().toISOString(); salvar();
-  $("#pdfNome").textContent = "PDF gerado: "+nomeArquivo()+". Agora abra o e-mail e anexe o arquivo.";
+  $("#pdfNome").textContent = "PDF gerado: "+nomeArquivo()+" (cópia sua; a entrega é o envio).";
 }
 
 /* ---------------- e-mail ---------------- */
 function abrirEmail(){
-  const P = DB.perfil;
-  const assunto = "["+CONFIG.disciplina+"] Diário semana "+String(semanaAtual).padStart(2,"0")+" — "+(P.nome||"(sem nome)")+" — equipe "+(P.equipe||"—");
-  const corpo = "Professor(a),\n\nSegue em anexo o diário de campo da semana "+semanaAtual+".\n\n"+
-    "Estudante: "+(P.nome||"")+"\nMatrícula: "+(P.matricula||"")+"\nEquipe: "+(P.equipe||"")+
-    "\nTerritório: "+(P.territorio||"")+"\n\nATENÇÃO: anexe o arquivo "+nomeArquivo()+" antes de enviar.\n";
+  const P = DB.perfil, S = sem(semanaAtual), tp = defTipo(S.tipo);
+  const assunto = "["+CONFIG.disciplina+"] Diário semana "+String(semanaAtual).padStart(2,"0")+" ("+(tp?tp.label.toLowerCase():"—")+") — "+(nomeCompleto()||"(sem nome)")+" — grupo "+(P.equipe||"—");
+  const corpo = "Professor(a),\n\nO envio pelo site não funcionou, então segue o diário da semana "+semanaAtual+" em anexo.\n\n"+
+    "Estudante: "+nomeCompleto()+"\nMatrícula: "+(P.matricula||"")+"\nGrupo: "+(P.equipe||"")+
+    "\nTipo do dia: "+(tp?tp.label:"")+"\nTerritório: "+(P.territorio||"")+"\n\nATENÇÃO: anexe o arquivo "+nomeArquivo()+" antes de enviar.\n";
   location.href = "mailto:"+encodeURIComponent(CONFIG.emailProfessor)+
     "?subject="+encodeURIComponent(assunto)+"&body="+encodeURIComponent(corpo);
 }
@@ -1287,7 +1527,7 @@ function abrirEmail(){
 /* ---------------- backup ---------------- */
 function exportar(){
   const blob = new Blob([JSON.stringify(DB,null,2)],{type:"application/json"});
-  const a = el("a",{href:URL.createObjectURL(blob), download:CONFIG.disciplina+"_backup_"+slug(DB.perfil.nome)+".json"});
+  const a = el("a",{href:URL.createObjectURL(blob), download:CONFIG.disciplina+"_backup_"+slug(nomeCompleto())+".json"});
   document.body.appendChild(a); a.click(); a.remove();
 }
 function importar(file){
@@ -1304,6 +1544,7 @@ function importar(file){
   r.readAsText(file);
 }
 
+$("#btnEnviar").addEventListener("click", enviar);
 $("#btnPDF").addEventListener("click", gerarPDF);
 $("#btnMail").addEventListener("click", abrirEmail);
 $("#btnExport").addEventListener("click", exportar);
