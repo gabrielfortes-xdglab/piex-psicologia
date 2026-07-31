@@ -38,7 +38,7 @@ var CAMPOS = [
   { id:"av_evidencia",    titulo:"3 · evidência" },
   { id:"av_quem",         titulo:"3 · avaliação dos participantes" },
   { id:"mo_aprimorar",    titulo:"4 · o que aprimorar" },
-  { id:"rf_incomodo",     titulo:"5 · incômodo" }
+  { id:"rf_incomodo",     titulo:"4 · reflexividade" }
 ];
 
 /* Campos obrigatórios de cada trilha: é sobre eles que a completude é

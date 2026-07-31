@@ -168,6 +168,13 @@ input:focus, textarea:focus, select:focus{border-color:var(--accent)}
 .opc{font-weight:400; font-size:.76rem; color:var(--ink-3); text-transform:uppercase; letter-spacing:.06em; margin-left:6px}
 .rev-bloco{font-size:.95rem; margin:26px 0 2px; color:var(--accent)}
 
+/* ---------- subtítulo de seção dentro de um bloco ---------- */
+.secao{
+  font:600 .78rem/1.2 "Public Sans",sans-serif; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--accent); margin:34px 0 14px; padding-top:16px; border-top:1px solid var(--line);
+}
+.secao:first-of-type{margin-top:22px; padding-top:0; border-top:0}
+
 /* ---------- dobra de identificação ---------- */
 .dobra{border:1px solid var(--line); background:var(--paper-2); border-radius:var(--radius); padding:0 14px; margin:0 0 26px}
 .dobra summary{cursor:pointer; padding:13px 0; font-size:.9rem; color:var(--ink-2); font-weight:500; list-style:revert}
@@ -730,8 +737,8 @@ const CONFIG = {
   /* ---- TIPOS DE REGISTRO ----
      A estudante escolhe um no começo, e isso define quais blocos aparecem.  */
   tipos: [
-    { id:"campo", label:"Dia de campo", desc:"Cinco blocos.",
-      blocos:["planejamento","execucao","avaliacao","modificacoes","reflexividade"] },
+    { id:"campo", label:"Dia de campo", desc:"Quatro blocos.",
+      blocos:["planejamento","execucao","avaliacao","fechamento"] },
     { id:"aula",  label:"Dia de aula",  desc:"Registro curto, quatro perguntas.",
       blocos:["aula"] }
   ],
@@ -829,23 +836,18 @@ const CONFIG = {
       ]
     },
 
-    /* ---------- 4 ---------- */
-    modificacoes: {
-      tag:"4 · Modificações", titulo:"O que dá para aprimorar na próxima semana",
-      sub:"O que você escrever aqui reaparece no bloco 1 da semana que vem.",
+    /* ---------- 4 ----------
+       Modificações e reflexividade dividem uma tela só. O campo "secao"
+       mantém os dois nomes visíveis, e é ele que agrupa a revisão e o PDF. */
+    fechamento: {
+      tag:"4 · Fechamento", titulo:"Fechar a semana",
       campos:[
-        { id:"mo_aprimorar", label:"O que dá para aprimorar, especificamente?",
+        { id:"mo_aprimorar", secao:"Modificações",
+          label:"O que dá para aprimorar, especificamente?",
           ex:"Reduzir a abertura de 15 para 5 minutos: foi ela que comeu o tempo do fechamento.",
-          min:120 }
-      ]
-    },
-
-    /* ---------- 5 ---------- */
-    reflexividade: {
-      tag:"5 · Reflexividade", titulo:"Implicação",
-      sub:"Primeira pessoa.",
-      campos:[
-        { id:"rf_incomodo", label:"O que te incomodou ou te surpreendeu esta semana?",
+          min:120 },
+        { id:"rf_incomodo", secao:"Reflexividade",
+          label:"O que te incomodou ou te surpreendeu esta semana?",
           ex:"Percebi que falei quase o tempo todo e chamei isso de roda de conversa.",
           min:100 }
       ]
@@ -1202,7 +1204,16 @@ function telaBloco(chave){
     const pa = painelPlanoAnterior();
     if(pa) s.appendChild(pa);
   }
-  camposVisiveis(chave).forEach(c => s.appendChild(campoHTML(c, nivel)));
+  /* Quando os campos trazem "secao", ela vira um subtítulo dentro da tela:
+     é o que permite juntar dois blocos numa página sem perder os nomes.   */
+  let secaoAtual = null;
+  camposVisiveis(chave).forEach(c => {
+    if(c.secao && c.secao !== secaoAtual){
+      secaoAtual = c.secao;
+      s.appendChild(el("h3",{class:"secao"}, c.secao));
+    }
+    s.appendChild(campoHTML(c, nivel));
+  });
   return s;
 }
 
@@ -1248,7 +1259,7 @@ function itensDaSemana(){
   blocosDaSemana(semanaAtual).forEach(k=>{
     const b = CONFIG.blocos[k];
     camposVisiveis(k).forEach(c=>{
-      out.push({id:c.id, bloco:b.tag, label:c.label, val:S.campos[c.id]||"", min:c.min||0, opcional:!!c.opcional});
+      out.push({id:c.id, bloco:c.secao || b.tag, label:c.label, val:S.campos[c.id]||"", min:c.min||0, opcional:!!c.opcional});
     });
   });
   return out;
