@@ -406,6 +406,10 @@ function criaLeitura(ss) {
     SpreadsheetApp.newDataValidation().requireNumberBetween(1, TOTAL_SEMANAS).build()
   );
   sh.getRange("B3:B4").setBackground("#fff2cc");
+  /* A matrícula escolhida precisa continuar texto, como está no painel.
+     Sem isso o Sheets converte para número ao escolher no menu, e a
+     validação acusa "fora do intervalo" comparando número com texto.    */
+  sh.getRange("B3").setNumberFormat("@");
 
   /* Mesma troca do painel: XLOOKUP de baixo para cima, exato, em vez do
      LOOKUP(2;1/(...)), que não achava linhas no meio da aba.             */
