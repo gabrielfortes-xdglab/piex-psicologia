@@ -184,17 +184,37 @@ function descobreSeparador(ss) {
 function configurarPlanilha() {
   var ss = SpreadsheetApp.getActive();
   descobreSeparador(ss);
-  criaConfig(ss);
-  criaTurma(ss);
-  criaRespostas(ss);
-  criaPainel(ss);
-  criaLeitura(ss);
-  ss.setActiveSheet(ss.getSheetByName("painel"));
+
+  /* Cada etapa é isolada: um tropeço numa aba não pode impedir a montagem
+     das seguintes, que foi exatamente o que aconteceu na primeira versão.
+     O que falhar aparece nomeado no aviso e no registro de execução.     */
+  var etapas = [
+    ["config",    criaConfig],
+    ["turma",     criaTurma],
+    ["respostas", criaRespostas],
+    ["painel",    criaPainel],
+    ["leitura",   criaLeitura]
+  ];
+  var falhas = [];
+  for (var i = 0; i < etapas.length; i++) {
+    try {
+      etapas[i][1](ss);
+    } catch (e) {
+      falhas.push(etapas[i][0]);
+      Logger.log("Falhou em '" + etapas[i][0] + "': " + e + "\n" + (e.stack || ""));
+    }
+  }
+
+  var alvo = ss.getSheetByName("painel");
+  if (alvo) ss.setActiveSheet(alvo);
+
   /* toast em vez de alert: não bloqueia a execução quando a função é
      rodada do editor, com a aba da planilha em segundo plano.            */
   ss.toast(
-    "Abas montadas (separador \"" + SEP + "\"). Agora: cole a turma na aba \"turma\" e confira a data em \"config\".",
-    "Diário PIEX", 12
+    falhas.length
+      ? "Falhou em: " + falhas.join(", ") + ". Veja o registro de execução."
+      : "Abas montadas (separador \"" + SEP + "\"). Agora: cole a turma na aba \"turma\" e confira a data em \"config\".",
+    "Diário PIEX", 15
   );
 }
 
@@ -314,19 +334,34 @@ function criaPainel(ss) {
   sh.getRange(5, 3, linhas, TOTAL_SEMANAS + 2).setFormulas(bloco);
 
   var grade = sh.getRange(5, 3, linhas, TOTAL_SEMANAS);
-  var regras = [
-    SpreadsheetApp.newConditionalFormatRule()
-      .whenTextEqualTo("✓").setBackground("#d9ead3").setFontColor("#38761d")
-      .setRanges([grade]).build(),
-    SpreadsheetApp.newConditionalFormatRule()
-      .whenTextEqualTo("!").setBackground("#fff2cc").setFontColor("#bf9000")
-      .setRanges([grade]).build(),
-    /* vermelho só até a semana de hoje: semana futura em branco não é falta */
-    SpreadsheetApp.newConditionalFormatRule()
-      .whenFormulaSatisfied(fx('=AND($A5<>""~C5=""~C$4<=config!$B$5)'))
-      .setBackground("#f4cccc").setRanges([grade]).build()
-  ];
-  sh.setConditionalFormatRules(regras);
+  function regras(sep) {
+    return [
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenTextEqualTo("✓").setBackground("#d9ead3").setFontColor("#38761d")
+        .setRanges([grade]).build(),
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenTextEqualTo("!").setBackground("#fff2cc").setFontColor("#bf9000")
+        .setRanges([grade]).build(),
+      /* vermelho só até a semana de hoje: semana futura em branco não é falta */
+      SpreadsheetApp.newConditionalFormatRule()
+        .whenFormulaSatisfied('=AND($A5<>""' + sep + 'C5=""' + sep + 'C$4<=config!$B$5)')
+        .setBackground("#f4cccc").setRanges([grade]).build()
+    ];
+  }
+  /* A regra de formatação passa por outro caminho da API que o das células,
+     e nem sempre aceita o mesmo separador. Se recusar, tentamos o outro; se
+     recusar os dois, seguimos sem o vermelho, que é só cosmético. Isso não
+     pode derrubar a montagem das abas seguintes.                          */
+  try {
+    sh.setConditionalFormatRules(regras(SEP));
+  } catch (e1) {
+    try {
+      sh.setConditionalFormatRules(regras(SEP === "," ? ";" : ","));
+    } catch (e2) {
+      sh.setConditionalFormatRules(regras(SEP).slice(0, 2));
+      Logger.log("Sem a regra de 'não entregou': " + e2);
+    }
+  }
 
   grade.setHorizontalAlignment("center").setFontSize(11);
   sh.setColumnWidth(1, 100);
