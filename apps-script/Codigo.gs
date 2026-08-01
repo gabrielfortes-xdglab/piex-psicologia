@@ -34,7 +34,9 @@ var CAMPOS = [
   { id:"ex_naofuncionou", titulo:"2 · o que não funcionou" },
   { id:"ex_imprevisto",   titulo:"2 · imprevisto" },
   { id:"ex_ajuste",       titulo:"2 · ajuste na hora" },
-  { id:"av_veredito",     titulo:"3 · veredito" },
+  /* min próprio: o veredito é escolha de uma opção curta ("Atingido"),
+     e nunca alcançaria o corte de caracteres dos campos de texto.        */
+  { id:"av_veredito",     titulo:"3 · veredito", min:1 },
   { id:"av_evidencia",    titulo:"3 · evidência" },
   { id:"av_quem",         titulo:"3 · avaliação dos participantes" },
   { id:"mo_aprimorar",    titulo:"4 · o que aprimorar" },
@@ -84,7 +86,8 @@ function doPost(e) {
     for (var i = 0; i < CAMPOS.length; i++) {
       var v = String(respostas[CAMPOS[i].id] || "").trim();
       caracteres += v.length;
-      if (obrig.indexOf(CAMPOS[i].id) >= 0 && v.length >= MIN_CARACTERES) preenchidos++;
+      var corte = CAMPOS[i].min || MIN_CARACTERES;
+      if (obrig.indexOf(CAMPOS[i].id) >= 0 && v.length >= corte) preenchidos++;
     }
     var status = preenchidos === obrig.length ? "completo"
                : (preenchidos === 0 ? "vazio" : "raso");
