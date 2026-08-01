@@ -158,16 +158,43 @@ function abaRespostas() {
 
 /* ========================= montagem da planilha ========================= */
 
+/* Separador de argumentos das fórmulas.
+   Planilha em inglês usa vírgula; em português, ponto e vírgula. O Apps
+   Script grava a fórmula como texto, sem traduzir, então escrever vírgula
+   numa planilha em pt-BR produz #ERROR! em toda célula. Descobrimos qual é
+   o separador testando uma fórmula de sonda, em vez de adivinhar pela
+   localidade. Nos modelos abaixo, o til ~ marca onde entra o separador.   */
+var SEP = ",";
+function fx(t) { return t.replace(/~/g, SEP); }
+
+function descobreSeparador(ss) {
+  var sh = ss.insertSheet("__sonda__");
+  try {
+    sh.getRange("A1").setFormula("=SUM(1,2)");
+    SpreadsheetApp.flush();
+    SEP = (sh.getRange("A1").getValue() === 3) ? "," : ";";
+  } catch (e) {
+    SEP = ";";
+  } finally {
+    ss.deleteSheet(sh);
+  }
+  return SEP;
+}
+
 function configurarPlanilha() {
   var ss = SpreadsheetApp.getActive();
+  descobreSeparador(ss);
   criaConfig(ss);
   criaTurma(ss);
   criaRespostas(ss);
   criaPainel(ss);
   criaLeitura(ss);
   ss.setActiveSheet(ss.getSheetByName("painel"));
-  SpreadsheetApp.getUi().alert(
-    "Pronto.\n\nAgora: cole a lista da turma na aba \"turma\" e confira a data de início na aba \"config\"."
+  /* toast em vez de alert: não bloqueia a execução quando a função é
+     rodada do editor, com a aba da planilha em segundo plano.            */
+  ss.toast(
+    "Abas montadas (separador \"" + SEP + "\"). Agora: cole a turma na aba \"turma\" e confira a data em \"config\".",
+    "Diário PIEX", 12
   );
 }
 
@@ -179,26 +206,27 @@ function aba(ss, nome) {
 
 function criaConfig(ss) {
   var sh = aba(ss, "config");
-  if (sh.getLastRow() > 0) return;            // já configurada, não sobrescreve
-  sh.getRange("A1:B5").setValues([
-    ["parâmetro", "valor"],
-    ["Primeira segunda-feira (semana 1)", "2026-08-03"],
-    ["Total de semanas", TOTAL_SEMANAS],
-    ["Mínimo de caracteres por campo", MIN_CARACTERES],
-    ["Semana de hoje (calculada)", ""]
-  ]);
-  /* Atenção: fórmulas gravadas pelo Apps Script usam SEMPRE vírgula como
-     separador, mesmo que a planilha esteja em português e mostre ponto e
-     vírgula depois. Trocar por ";' aqui quebra a gravação.                */
+  /* Os valores só entram na primeira vez, para não apagar o que você
+     ajustou. A fórmula é reescrita sempre, para que rodar de novo
+     conserte uma planilha montada com o separador errado.               */
+  if (sh.getLastRow() === 0) {
+    sh.getRange("A1:B4").setValues([
+      ["parâmetro", "valor"],
+      ["Primeira segunda-feira (semana 1)", "2026-08-03"],
+      ["Total de semanas", TOTAL_SEMANAS],
+      ["Mínimo de caracteres por campo", MIN_CARACTERES]
+    ]);
+    sh.getRange("A7").setValue(
+      'A data acima é a única coisa que você precisa ajustar a cada semestre.'
+    ).setFontColor("#777");
+  }
+  sh.getRange("A5").setValue("Semana de hoje (calculada)");
   sh.getRange("B5").setFormula(
-    '=IF(B2="","",MIN(B3,MAX(1,ROUNDDOWN((TODAY()-B2)/7)+1)))'
+    fx('=IF(B2=""~""~MIN(B3~MAX(1~ROUNDDOWN((TODAY()-B2)/7)+1)))')
   );
   sh.getRange("A1:B1").setFontWeight("bold");
   sh.getRange("B2").setNumberFormat("yyyy-mm-dd");
   sh.setColumnWidth(1, 260);
-  sh.getRange("A7").setValue(
-    'A data acima é a única coisa que você precisa ajustar a cada semestre.'
-  ).setFontColor("#777");
 }
 
 function criaTurma(ss) {
@@ -237,6 +265,7 @@ function criaPainel(ss) {
 
   sh.getRange("A1").setValue("Painel de acompanhamento").setFontWeight("bold").setFontSize(13);
   sh.getRange("A2").setFormula('="Semana de hoje: "&config!B5&"   ·   ✓ completo   !  raso   vermelho: não entregou"');
+  /* (essa fórmula não tem argumentos, então não depende do separador) */
   sh.getRange("A2").setFontColor("#777");
 
   var cab = ["matricula", "estudante"];
@@ -250,10 +279,10 @@ function criaPainel(ss) {
 
   /* A grade puxa da aba turma e cruza com respostas. LOOKUP(2,1/(...)) pega
      sempre a ÚLTIMA linha que bate, que é o reenvio mais recente.          */
-  sh.getRange("A5").setFormula('=IFERROR(FILTER(turma!A2:A,turma!A2:A<>""),"")');
-  sh.getRange("B5").setFormula(
-    '=ARRAYFORMULA(IF(A5:A="","",TRIM(IFERROR(VLOOKUP(A5:A,turma!A:C,2,FALSE),"")&" "&IFERROR(VLOOKUP(A5:A,turma!A:C,3,FALSE),""))))'
-  );
+  sh.getRange("A5").setFormula(fx('=IFERROR(FILTER(turma!A2:A~turma!A2:A<>"")~"")'));
+  sh.getRange("B5").setFormula(fx(
+    '=ARRAYFORMULA(IF(A5:A=""~""~TRIM(IFERROR(VLOOKUP(A5:A~turma!A:C~2~FALSE)~"")&" "&IFERROR(VLOOKUP(A5:A~turma!A:C~3~FALSE)~""))))'
+  ));
 
   /* Uma escrita só: 200 chamadas de setFormula estouram o tempo limite.    */
   var linhas = 200;
@@ -265,21 +294,21 @@ function criaPainel(ss) {
     var linha = [];
     for (var c = 0; c < TOTAL_SEMANAS; c++) {
       var col = 3 + c;
-      linha.push(
-        '=IF($A' + r + '="","",IFERROR(IF(LOOKUP(2,1/(respostas!$' + cChave + '$2:$' + cChave + '=$A' + r + '&"|"&' +
-        colLetra(col) + '$4),respostas!$' + cStatus + '$2:$' + cStatus + ')="completo","✓","!"),""))'
-      );
+      linha.push(fx(
+        '=IF($A' + r + '=""~""~IFERROR(IF(LOOKUP(2~1/(respostas!$' + cChave + '$2:$' + cChave + '=$A' + r + '&"|"&' +
+        colLetra(col) + '$4)~respostas!$' + cStatus + '$2:$' + cStatus + ')="completo"~"✓"~"!")~""))'
+      ));
     }
     /* atraso = semanas já vencidas menos as que têm alguma coisa gravada */
-    linha.push(
-      '=IF($A' + r + '="","",MIN(' + TOTAL_SEMANAS + ',MAX(0,config!$B$5))' +
-      '-COUNTIF(OFFSET($C' + r + ',0,0,1,MIN(' + TOTAL_SEMANAS + ',MAX(1,config!$B$5))),"✓")' +
-      '-COUNTIF(OFFSET($C' + r + ',0,0,1,MIN(' + TOTAL_SEMANAS + ',MAX(1,config!$B$5))),"!"))'
-    );
-    linha.push(
-      '=IF($A' + r + '="","",IFERROR(TEXT(LOOKUP(2,1/(respostas!$' + cMat + '$2:$' + cMat + '=$A' + r +
-      '),respostas!$' + cRecebido + '$2:$' + cRecebido + '),"dd/mm hh:mm"),"—"))'
-    );
+    linha.push(fx(
+      '=IF($A' + r + '=""~""~MIN(' + TOTAL_SEMANAS + '~MAX(0~config!$B$5))' +
+      '-COUNTIF(OFFSET($C' + r + '~0~0~1~MIN(' + TOTAL_SEMANAS + '~MAX(1~config!$B$5)))~"✓")' +
+      '-COUNTIF(OFFSET($C' + r + '~0~0~1~MIN(' + TOTAL_SEMANAS + '~MAX(1~config!$B$5)))~"!"))'
+    ));
+    linha.push(fx(
+      '=IF($A' + r + '=""~""~IFERROR(TEXT(LOOKUP(2~1/(respostas!$' + cMat + '$2:$' + cMat + '=$A' + r +
+      ')~respostas!$' + cRecebido + '$2:$' + cRecebido + ')~"dd/mm hh:mm")~"—"))'
+    ));
     bloco.push(linha);
   }
   sh.getRange(5, 3, linhas, TOTAL_SEMANAS + 2).setFormulas(bloco);
@@ -294,7 +323,7 @@ function criaPainel(ss) {
       .setRanges([grade]).build(),
     /* vermelho só até a semana de hoje: semana futura em branco não é falta */
     SpreadsheetApp.newConditionalFormatRule()
-      .whenFormulaSatisfied('=AND($A5<>"",C5="",C$4<=config!$B$5)')
+      .whenFormulaSatisfied(fx('=AND($A5<>""~C5=""~C$4<=config!$B$5)'))
       .setBackground("#f4cccc").setRanges([grade]).build()
   ];
   sh.setConditionalFormatRules(regras);
@@ -322,15 +351,15 @@ function criaLeitura(ss) {
   sh.getRange("B3:B4").setBackground("#fff2cc");
 
   var K  = '$' + colMeta("chave") + '$2:$' + colMeta("chave");
-  var busca = 'LOOKUP(2,1/(respostas!' + K + '=$B$3&"|"&$B$4),respostas!';
-  sh.getRange("A6").setFormula(
-    '=IF(OR($B$3="",$B$4=""),"escolha matrícula e semana acima",' +
-    'IFERROR(VLOOKUP($B$3,turma!A:C,2,FALSE)&" "&VLOOKUP($B$3,turma!A:C,3,FALSE)&' +
+  var busca = 'LOOKUP(2~1/(respostas!' + K + '=$B$3&"|"&$B$4)~respostas!';
+  sh.getRange("A6").setFormula(fx(
+    '=IF(OR($B$3=""~$B$4="")~"escolha matrícula e semana acima"~' +
+    'IFERROR(VLOOKUP($B$3~turma!A:C~2~FALSE)&" "&VLOOKUP($B$3~turma!A:C~3~FALSE)&' +
     '"   ·   "&' + busca + '$' + colMeta("tipo") + '$2:$' + colMeta("tipo") + ')&' +
-    '"   ·   enviado "&TEXT(' + busca + '$' + colMeta("recebido_em") + '$2:$' + colMeta("recebido_em") + '),"dd/mm/yyyy hh:mm")&' +
-    '"   ·   protocolo "&' + busca + '$' + colMeta("protocolo") + '$2:$' + colMeta("protocolo") + '),' +
+    '"   ·   enviado "&TEXT(' + busca + '$' + colMeta("recebido_em") + '$2:$' + colMeta("recebido_em") + ')~"dd/mm/yyyy hh:mm")&' +
+    '"   ·   protocolo "&' + busca + '$' + colMeta("protocolo") + '$2:$' + colMeta("protocolo") + ')~' +
     '"sem registro enviado para essa semana"))'
-  );
+  ));
   sh.getRange("A6").setFontWeight("bold");
 
   /* Uma pergunta por linha, com a resposta ao lado. Só aparecem as
@@ -339,10 +368,10 @@ function criaLeitura(ss) {
   for (var i = 0; i < CAMPOS.length; i++) {
     var colResposta = colLetra(META.length + 1 + i);
     rotulos.push([CAMPOS[i].titulo]);
-    formulas.push([
-      '=IF(OR($B$3="",$B$4=""),"",IFERROR(' + busca + '$' +
-      colResposta + '$2:$' + colResposta + '),""))'
-    ]);
+    formulas.push([fx(
+      '=IF(OR($B$3=""~$B$4="")~""~IFERROR(' + busca + '$' +
+      colResposta + '$2:$' + colResposta + ')~""))'
+    )]);
   }
   sh.getRange(8, 1, CAMPOS.length, 1).setValues(rotulos);
   sh.getRange(8, 2, CAMPOS.length, 1).setFormulas(formulas);
