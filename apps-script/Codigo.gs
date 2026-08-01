@@ -259,7 +259,9 @@ function criaTurma(ss) {
       .setFontWeight("bold");
     sh.setFrozenRows(1);
     sh.getRange("F1").setValue(
-      "Cole aqui a lista da turma. A matrícula é a chave: escreva só números e letras, sem ponto."
+      "OPCIONAL. O painel já lista sozinho quem envia. Preencha aqui só se quiser que ele mostre " +
+      "também quem nunca enviou nada, que é o único caso impossível de deduzir dos envios. " +
+      "A matrícula é a chave: só números e letras, sem ponto."
     ).setFontColor("#777");
   }
   /* Sempre, mesmo com a aba já preenchida: sem isso o Sheets lê 00123456
@@ -311,9 +313,24 @@ function criaPainel(ss) {
 
   /* A grade puxa da aba turma e cruza com respostas. LOOKUP(2,1/(...)) pega
      sempre a ÚLTIMA linha que bate, que é o reenvio mais recente.          */
-  sh.getRange("A5").setFormula(fx('=IFERROR(FILTER(turma!A2:A~turma!A2:A<>"")~"")'));
+  /* Quem aparece no painel: a lista da turma MAIS todo mundo que já
+     enviou alguma coisa. Assim a aba turma é opcional; ela só acrescenta
+     quem ainda não deu sinal de vida, que é justamente quem o painel não
+     teria como adivinhar. O ; dentro de {} empilha linhas e é o mesmo em
+     qualquer idioma, então não entra no fx().                            */
+  var cMat = colMeta("matricula"), cSob = colMeta("sobrenome");
+  var pilha = '{turma!A2:A;respostas!$' + cMat + '$2:$' + cMat + '}';
+  sh.getRange("A5").setFormula(fx(
+    '=IFERROR(SORT(UNIQUE(FILTER(' + pilha + '~' + pilha + '<>"")))~"")'
+  ));
+
+  /* Nome: primeiro o que estiver na turma; se não houver, o que veio no
+     próprio envio.                                                       */
+  var faixa = 'respostas!$' + cMat + ':$' + cSob;
   sh.getRange("B5").setFormula(fx(
-    '=ARRAYFORMULA(IF(A5:A=""~""~TRIM(IFERROR(VLOOKUP(A5:A~turma!A:C~2~FALSE)~"")&" "&IFERROR(VLOOKUP(A5:A~turma!A:C~3~FALSE)~""))))'
+    '=ARRAYFORMULA(IF(A5:A=""~""~TRIM(' +
+    'IFNA(VLOOKUP(A5:A~turma!A:C~2~FALSE)~IFNA(VLOOKUP(A5:A~' + faixa + '~2~FALSE)~""))&" "&' +
+    'IFNA(VLOOKUP(A5:A~turma!A:C~3~FALSE)~IFNA(VLOOKUP(A5:A~' + faixa + '~3~FALSE)~"")))))'
   ));
 
   /* Uma escrita só: 200 chamadas de setFormula estouram o tempo limite.    */
@@ -389,8 +406,11 @@ function criaLeitura(ss) {
   sh.getRange("A3").setValue("matrícula").setFontWeight("bold");
   sh.getRange("A4").setValue("semana").setFontWeight("bold");
 
+  /* O menu de matrículas sai da coluna do painel, não da aba turma: assim
+     ele lista também quem enviou sem estar na lista da turma.            */
   var vMat = SpreadsheetApp.newDataValidation()
-    .requireValueInRange(ss.getSheetByName("turma").getRange("A2:A"), true).build();
+    .requireValueInRange(ss.getSheetByName("painel").getRange("A5:A"), true)
+    .setAllowInvalid(true).build();
   sh.getRange("B3").setDataValidation(vMat);
   sh.getRange("B4").setDataValidation(
     SpreadsheetApp.newDataValidation().requireNumberBetween(1, TOTAL_SEMANAS).build()
