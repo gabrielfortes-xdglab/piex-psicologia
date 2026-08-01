@@ -298,7 +298,7 @@ function criaPainel(ss) {
   var nCols = 2 + TOTAL_SEMANAS + 2;          // matrícula, nome, semanas, atraso, último envio
 
   sh.getRange("A1").setValue("Painel de acompanhamento").setFontWeight("bold").setFontSize(13);
-  sh.getRange("A2").setFormula('="Semana de hoje: "&config!B5&"   ·   ✓ completo   !  raso   vermelho: não entregou"');
+  sh.getRange("A2").setFormula('="Semana de hoje: "&config!B5&"   ·   ✓ completo   !  raso   × não entregou   (vazio) semana ainda não chegou"');
   /* (essa fórmula não tem argumentos, então não depende do separador) */
   sh.getRange("A2").setFontColor("#777");
 
@@ -343,54 +343,44 @@ function criaPainel(ss) {
     var linha = [];
     for (var c = 0; c < TOTAL_SEMANAS; c++) {
       var col = 3 + c;
+      /* XLOOKUP com modo de busca -1 varre de baixo para cima e devolve o
+         envio mais recente daquela semana. Determinístico, ao contrário do
+         LOOKUP(2;1/(...)), que faz busca binária e só acerta por sorte
+         quando a maior parte da coluna está vazia.
+         A célula já resolve as três situações, inclusive o "não entregou",
+         para que a cor saia de regra de texto e não de fórmula.           */
       linha.push(fx(
-        '=IF($A' + r + '=""~""~IFERROR(IF(LOOKUP(2~1/(respostas!$' + cChave + '$2:$' + cChave + '=$A' + r + '&"|"&' +
-        colLetra(col) + '$4)~respostas!$' + cStatus + '$2:$' + cStatus + ')="completo"~"✓"~"!")~""))'
+        '=IF($A' + r + '=""~""~LET(s~XLOOKUP($A' + r + '&"|"&' + colLetra(col) +
+        '$4~respostas!$' + cChave + '$2:$' + cChave + '~respostas!$' + cStatus + '$2:$' + cStatus + '~""~0~-1)~' +
+        'IF(s="completo"~"✓"~IF(s<>""~"!"~IF(' + colLetra(col) + '$4<=config!$B$5~"×"~"")))))'
       ));
     }
-    /* atraso = semanas já vencidas menos as que têm alguma coisa gravada */
+    /* atraso: agora é só contar os × da própria linha */
     linha.push(fx(
-      '=IF($A' + r + '=""~""~MIN(' + TOTAL_SEMANAS + '~MAX(0~config!$B$5))' +
-      '-COUNTIF(OFFSET($C' + r + '~0~0~1~MIN(' + TOTAL_SEMANAS + '~MAX(1~config!$B$5)))~"✓")' +
-      '-COUNTIF(OFFSET($C' + r + '~0~0~1~MIN(' + TOTAL_SEMANAS + '~MAX(1~config!$B$5)))~"!"))'
+      '=IF($A' + r + '=""~""~COUNTIF($C' + r + ':$' + colLetra(2 + TOTAL_SEMANAS) + r + '~"×"))'
     ));
     linha.push(fx(
-      '=IF($A' + r + '=""~""~IFERROR(TEXT(LOOKUP(2~1/(respostas!$' + cMat + '$2:$' + cMat + '=$A' + r +
-      ')~respostas!$' + cRecebido + '$2:$' + cRecebido + ')~"dd/mm hh:mm")~"—"))'
+      '=IF($A' + r + '=""~""~LET(d~XLOOKUP($A' + r + '~respostas!$' + cMat + '$2:$' + cMat +
+      '~respostas!$' + cRecebido + '$2:$' + cRecebido + '~""~0~-1)~IF(d=""~"—"~TEXT(d~"dd/mm hh:mm"))))'
     ));
     bloco.push(linha);
   }
   sh.getRange(5, 3, linhas, TOTAL_SEMANAS + 2).setFormulas(bloco);
 
+  /* Três regras, todas por texto. Nenhuma depende de fórmula, então nenhuma
+     depende do separador nem de qual caminho da API o Google usa.        */
   var grade = sh.getRange(5, 3, linhas, TOTAL_SEMANAS);
-  function regras(sep) {
-    return [
-      SpreadsheetApp.newConditionalFormatRule()
-        .whenTextEqualTo("✓").setBackground("#d9ead3").setFontColor("#38761d")
-        .setRanges([grade]).build(),
-      SpreadsheetApp.newConditionalFormatRule()
-        .whenTextEqualTo("!").setBackground("#fff2cc").setFontColor("#bf9000")
-        .setRanges([grade]).build(),
-      /* vermelho só até a semana de hoje: semana futura em branco não é falta */
-      SpreadsheetApp.newConditionalFormatRule()
-        .whenFormulaSatisfied('=AND($A5<>""' + sep + 'C5=""' + sep + 'C$4<=config!$B$5)')
-        .setBackground("#f4cccc").setRanges([grade]).build()
-    ];
-  }
-  /* A regra de formatação passa por outro caminho da API que o das células,
-     e nem sempre aceita o mesmo separador. Se recusar, tentamos o outro; se
-     recusar os dois, seguimos sem o vermelho, que é só cosmético. Isso não
-     pode derrubar a montagem das abas seguintes.                          */
-  try {
-    sh.setConditionalFormatRules(regras(SEP));
-  } catch (e1) {
-    try {
-      sh.setConditionalFormatRules(regras(SEP === "," ? ";" : ","));
-    } catch (e2) {
-      sh.setConditionalFormatRules(regras(SEP).slice(0, 2));
-      Logger.log("Sem a regra de 'não entregou': " + e2);
-    }
-  }
+  sh.setConditionalFormatRules([
+    SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo("✓").setBackground("#d9ead3").setFontColor("#38761d")
+      .setRanges([grade]).build(),
+    SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo("!").setBackground("#fff2cc").setFontColor("#bf9000")
+      .setRanges([grade]).build(),
+    SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo("×").setBackground("#f4cccc").setFontColor("#cc0000")
+      .setRanges([grade]).build()
+  ]);
 
   grade.setHorizontalAlignment("center").setFontSize(11);
   sh.setColumnWidth(1, 100);
@@ -417,15 +407,21 @@ function criaLeitura(ss) {
   );
   sh.getRange("B3:B4").setBackground("#fff2cc");
 
-  var K  = '$' + colMeta("chave") + '$2:$' + colMeta("chave");
-  var busca = 'LOOKUP(2~1/(respostas!' + K + '=$B$3&"|"&$B$4)~respostas!';
+  /* Mesma troca do painel: XLOOKUP de baixo para cima, exato, em vez do
+     LOOKUP(2;1/(...)), que não achava linhas no meio da aba.             */
+  var K  = 'respostas!$' + colMeta("chave") + '$2:$' + colMeta("chave");
+  function acha(col) {
+    return 'XLOOKUP($B$3&"|"&$B$4~' + K + '~respostas!$' + col + '$2:$' + col + '~""~0~-1)';
+  }
+  var busca = acha;
   sh.getRange("A6").setFormula(fx(
     '=IF(OR($B$3=""~$B$4="")~"escolha matrícula e semana acima"~' +
-    'IFERROR(VLOOKUP($B$3~turma!A:C~2~FALSE)&" "&VLOOKUP($B$3~turma!A:C~3~FALSE)&' +
-    '"   ·   "&' + busca + '$' + colMeta("tipo") + '$2:$' + colMeta("tipo") + ')&' +
-    '"   ·   enviado "&TEXT(' + busca + '$' + colMeta("recebido_em") + '$2:$' + colMeta("recebido_em") + ')~"dd/mm/yyyy hh:mm")&' +
-    '"   ·   protocolo "&' + busca + '$' + colMeta("protocolo") + '$2:$' + colMeta("protocolo") + ')~' +
-    '"sem registro enviado para essa semana"))'
+    'LET(p~' + acha(colMeta("protocolo")) + '~IF(p=""~"sem registro enviado para essa semana"~' +
+    'IFNA(VLOOKUP($B$3~turma!A:C~2~FALSE)~' + acha(colMeta("nome")) + ')&" "&' +
+    'IFNA(VLOOKUP($B$3~turma!A:C~3~FALSE)~' + acha(colMeta("sobrenome")) + ')&' +
+    '"   ·   "&' + acha(colMeta("tipo")) + '&' +
+    '"   ·   enviado "&TEXT(' + acha(colMeta("recebido_em")) + '~"dd/mm/yyyy hh:mm")&' +
+    '"   ·   protocolo "&p)))'
   ));
   sh.getRange("A6").setFontWeight("bold");
 
@@ -436,8 +432,7 @@ function criaLeitura(ss) {
     var colResposta = colLetra(META.length + 1 + i);
     rotulos.push([CAMPOS[i].titulo]);
     formulas.push([fx(
-      '=IF(OR($B$3=""~$B$4="")~""~IFERROR(' + busca + '$' +
-      colResposta + '$2:$' + colResposta + ')~""))'
+      '=IF(OR($B$3=""~$B$4="")~""~' + acha(colResposta) + ')'
     )]);
   }
   sh.getRange(8, 1, CAMPOS.length, 1).setValues(rotulos);
