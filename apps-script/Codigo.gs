@@ -251,13 +251,18 @@ function criaConfig(ss) {
 
 function criaTurma(ss) {
   var sh = aba(ss, "turma");
-  if (sh.getLastRow() > 0) return;
-  sh.getRange("A1:D1").setValues([["matricula", "nome", "sobrenome", "grupo"]])
-    .setFontWeight("bold");
-  sh.setFrozenRows(1);
-  sh.getRange("F1").setValue(
-    "Cole aqui a lista da turma. A matrícula é a chave: escreva só números e letras, sem ponto."
-  ).setFontColor("#777");
+  if (sh.getLastRow() === 0) {
+    sh.getRange("A1:D1").setValues([["matricula", "nome", "sobrenome", "grupo"]])
+      .setFontWeight("bold");
+    sh.setFrozenRows(1);
+    sh.getRange("F1").setValue(
+      "Cole aqui a lista da turma. A matrícula é a chave: escreva só números e letras, sem ponto."
+    ).setFontColor("#777");
+  }
+  /* Sempre, mesmo com a aba já preenchida: sem isso o Sheets lê 00123456
+     como número e engole os zeros à esquerda, e a matrícula deixa de
+     bater com a que chega do site.                                       */
+  sh.getRange("A:A").setNumberFormat("@");
 }
 
 function criaRespostas(ss) {
@@ -273,6 +278,10 @@ function criaRespostas(ss) {
   sh.setFrozenRows(1);
   sh.setFrozenColumns(4);
   sh.getRange("C:C").setNumberFormat("dd/mm/yyyy hh:mm");
+  /* Chave e matrícula em formato texto, pelo mesmo motivo da aba turma:
+     zero à esquerda não pode se perder na gravação.                      */
+  sh.getRange(colMeta("chave") + ":" + colMeta("chave")).setNumberFormat("@");
+  sh.getRange(colMeta("matricula") + ":" + colMeta("matricula")).setNumberFormat("@");
   sh.hideColumns(1);                          // a coluna "chave" é de uso interno
 }
 
